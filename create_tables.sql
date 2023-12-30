@@ -1,7 +1,11 @@
 DROP TABLE IF EXISTS Pracownicy;
 DROP TABLE IF EXISTS UmowyPracownikow;
-DROP TABLE IF EXISTS Kierowcy;
+DROP TABLE IF EXISTS KierowcyAutobusow;
+DROP TABLE IF EXISTS KierowcyTramwajow;
 DROP TABLE IF EXISTS Zwolnienia;
+DROP TABLE IF EXISTS KartyMiejskie;
+DROP TABLE IF EXISTS Bilety;
+DROP TABLE IF EXISTS Klienci;
 
 
 -- Tworzenie tabel
@@ -30,7 +34,7 @@ CREATE TABLE UmowyPracownikow (
     warunkiPracy warunki NOT NULL
 );
 
-CREATE TABLE KierowcyAutobosow (
+CREATE TABLE KierowcyAutobusow (
     idKierowcy INT PRIMARY KEY,
     idPracownika INT REFERENCES Pracownicy(idPracownika),
     licencjaOd DATE NOT NULL,
