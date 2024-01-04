@@ -1,10 +1,6 @@
 CREATE TYPE stanPojazdu AS ENUM ('czynny', 'zepsuty', 'serwisowany' , 'wycofany');
 CREATE TYPE stanMiejsca AS ENUM('czynny', 'remontowany', 'wycofany');
 
-DROP SEQUENCE IF EXISTS sekwencjaID;
-CREATE SEQUENCE numeracjaPrzystankow AS INT CACHE 1;
-
-
 DROP TABLE IF EXISTS ModeleTramwajow;
 CREATE TABLE ModeleTramwajow (
     model VARCHAR(40) PRIMARY KEY,
@@ -97,60 +93,68 @@ CREATE TABLE PetleAutobusowe(
     stan stanMiejsca NOT NULL
 );
 
+DROP SEQUENCE IF EXISTS sekwencjaLinie;
+CREATE SEQUENCE sekwencjaLinie AS INT
+    INCREMENT 1
+    START 1
+    CACHE 1;
+
 DROP TABLE IF EXISTS LinieTramwajowe;
 CREATE TABLE LinieTramwajowe(
+    idLinii INT PRIMARY KEY DEFAULT nextval(sekwencjaLinie),
     numer INT,
     poczatek VARCHAR(50) REFERENCES PetleTramwajowe,
-    koniec VARCHAR(50) REFERENCES PetleTramwajowe,
-    kolejnosc INT,
-    nazwaPrzystanku INT REFERENCES PrzystankiTramwajowe,
-    PRIMARY KEY(numer, poczatek, koniec)
+    koniec VARCHAR(50) REFERENCES PetleTramwajowe
 );
 
 DROP TABLE IF EXISTS LinieAutobusowe;
 CREATE TABLE LinieAutobusowe(
+    idLinii INT PRIMARY KEY DEFAULT nextval(sekwencjaLinie),
     numer INT,
     poczatek VARCHAR(50) REFERENCES PetleAutobusowe,
-    koniec VARCHAR(50) REFERENCES PetleAutobusowe,
-    kolejnosc INT,
-    nazwaPrzystanku INT REFERENCES PrzystankiAutobusowe,
-    PRIMARY KEY(numer, poczatek, koniec)
+    koniec VARCHAR(50) REFERENCES PetleAutobusowe
 );
 
-DROP TABLE IF EXISTS KursyTramwajowe;
-CREATE TABLE KursyTramwajowe(
-    idKursu INT PRIMARY KEY,
+DROP TABLE IF EXISTS PrzejazdyTramwajowe;
+CREATE TABLE PrzejazdyTramwajowe(
+    idPrzejazdu INT PRIMARY KEY,
     pojazd VARCHAR(10) REFERENCES Tramwaje ON DELETE SET NULL,
-    linia INT REFERENCES LinieTramwajowe,
+    idKursu INT REFERENCES RozkladTramwaje(idKursu),
     kierowca VARCHAR REFERENCES KierowcyTramwajow ON DELETE SET NULL,
-    godzinaOdjazdu TIME NOT NULL
+    data DATE NOT NULL
 );
 
-DROP TABLE IF EXISTS KursyAutobusowe;
-CREATE TABLE KursyAutobusowe(
-    idKursu INT PRIMARY KEY,
+DROP TABLE IF EXISTS PrzejazdyAutobusowe;
+CREATE TABLE PrzejazdyAutobusowe(
+    idPrzejazdu INT PRIMARY KEY,
     pojazd VARCHAR(10) REFERENCES Autobusy ON DELETE SET NULL ,
-    linia INT REFERENCES LinieAutobusowe,
+    idKursu INT REFERENCES RozkladAutobusy(idKursu) ON DELETE CASCADE,
     kierowca VARCHAR REFERENCES KierowcyAutobusow ON DELETE SET NULL ,
-    godzinaOdjazdu TIME NOT NULL
+    data DATE NOT NULL
 );
+
+DROP SEQUENCE IF EXISTS sekwencjaKursy;
+CREATE SEQUENCE sekwencjaKursy AS INT
+    INCREMENT BY 1
+    START WITH 1
+    CACHE 1;
 
 DROP TABLE IF EXISTS RozkladTramwaje;
 CREATE TABLE RozkladTramwaje(
     przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe,
     linia INT REFERENCES LinieTramwajowe(numer),
-    idOdjazdu INT DEFAULT PLACEHOLDER,
+    idKursu INT DEFAULT nextval(sekwencjaKursy),
     godzina TIME,
-    PRIMARY KEY (przystanek, linia, idOdjazdu)
+    PRIMARY KEY (przystanek, linia, idKursu)
 );
 
-DROP TABLE IF EXISTS RozkladTramwaje;
-CREATE TABLE RozkladTramwaje(
+DROP TABLE IF EXISTS RozkladAutobusy;
+CREATE TABLE RozkladAutobusy(
     przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe,
     linia INT REFERENCES LinieAutobusowe(numer),
-    idOdjazdu INT DEFAULT PLACEHOLDER,
+    idKursu INT DEFAULT nextval(sekwencjaKursy),
     godzina TIME,
-    PRIMARY KEY (przystanek, linia, idOdjazdu)
+    PRIMARY KEY (przystanek, linia, idKursu)
 );
 
 
