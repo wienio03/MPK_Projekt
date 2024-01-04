@@ -83,6 +83,7 @@ DROP TABLE IF EXISTS PetleTramwajowe;
 CREATE TABLE PetleTramwajowe(
     nazwa VARCHAR(50) PRIMARY KEY,
     adres VARCHAR(50) NOT NULL UNIQUE,
+    iloscTorow INT,
     stan stanMiejsca NOT NULL
 );
 
@@ -201,6 +202,11 @@ VALUES
     ('Płasszów', 'Biskupińska 2', 160, 'czynny'),
     ('Bieńczyce', 'Makuszyńskiego 34', 200, 'czynny'),
     ('Czyżyny', 'Osiedle 2 Pułku Lotniczego 26', 100, 'wycofany');
+
+INSERT INTO PetleTramwajowe(nazwa, adres, iloscTorow, stan)
+VALUES
+    ('Czerwone Maki P+R', 'Czerwone Maki 77', 2, 'czynny'),
+    ('Mały Płaszów P+R', 'Mały Płaszów 7', 2, 'czynny')
 
 --wyzwalacze
  -- jak usuwamy kierowce to przypisujemy jego przyszlym kursom nowych
