@@ -1,6 +1,3 @@
-
-DROP TABLE IF EXISTS Pracownicy;
-
 DROP TABLE IF EXISTS UmowyPracownikow;
 
 DROP TABLE IF EXISTS KierowcyAutobusow;
@@ -9,13 +6,20 @@ DROP TABLE IF EXISTS KierowcyTramwajow;
 
 DROP TABLE IF EXISTS Zwolnienia;
 
-DROP TABLE IF EXISTS KartyMiejskie;
-
 DROP TABLE IF EXISTS Bilety;
 
 DROP TABLE IF EXISTS Klienci;
 
-DROP SEQUENCE IF EXISTS id_seq;
+DROP TABLE IF EXISTS Pracownicy;
+
+DROP TABLE IF EXISTS Transakcje;
+
+DROP TABLE IF EXISTS Doladowania;
+
+DROP TABLE IF EXISTS Pracownicy;
+
+DROP TABLE IF EXISTS KartyMiejskie;
+
 
 DROP TYPE IF EXISTS statusPracownika;
 
@@ -41,19 +45,50 @@ DROP TYPE IF EXISTS statusZwolnienia;
 
 DROP TYPE IF EXISTS metodaPlatnosci;
 
-CREATE SEQUENCE id_seq
-    START WITH 1
-    INCREMENT BY 1; -- dla szybszego dostepu do nastepnej liczby z pamieci
+DROP TYPE IF EXISTS miejsceKupna;
 
--- Tworzenie tabel
+DROP TRIGGER IF EXISTS aktualizuj_saldo_doladowanie ON KartyMiejskie;
 
+DROP TRIGGER IF EXISTS aktualizuj_saldo_transakcja ON KartyMiejskie;
 
 CREATE TYPE statusPracownika AS ENUM ('zwolnienie', 'aktywny', 'urlop');
 
 CREATE TYPE warunki AS ENUM ('zdalnie', 'stacjonarnie', 'hybrydowe');
 
+CREATE TYPE typZwolnienia AS ENUM ('chorobowe', 'urlop');
+
+CREATE TYPE statusZwolnienia AS ENUM ('zaakceptowany', 'oczekujacy');
+
+CREATE TYPE typBiletu as ENUM ('normalny', 'ulgowy', 'metropolitalny', 'mieszkanca',
+    'socjalny', 'bezrobotny', 'firmowy');
+
+CREATE TYPE zasiegBiletu as ENUM ('I', 'II', 'III', 'I+II', 'II+III',
+    'I+II+III');
+
+CREATE TYPE okresBiletu as ENUM ('20-minutowy', '60-minutowy',
+    '90-minutowy', '24-godzinny', '48-godzinny', '72-godzinny,'
+        '7-dniowy', 'weekendowy'
+    );
+
+CREATE TYPE metodaPlatnosci as ENUM('karta', 'gotowka', 'przelew', 'mobilna');
+
+CREATE TYPE miejsceKupna as ENUM('kasownik', 'elektronicznie');
+
+CREATE TYPE statusKlienta AS ENUM ('aktywny', 'nieaktywny', 'zablokowany');
+
+CREATE TYPE statusZnizki AS ENUM ('obowiazuje', 'nieobowiazuje');
+
+CREATE TYPE typKarty AS ENUM ('legitymacja studencka/doktorska',
+    'standardowa', 'senior');
+
+CREATE TYPE statusKarty AS ENUM ('aktywna', 'zawieszona', 'wygasla');
+
+
+
+
+
 CREATE TABLE Pracownicy (
-    idPracownika INT PRIMARY KEY, -- nie dziala sprawdzic czemu
+    idPracownika INT PRIMARY KEY,
     imie VARCHAR(40) NOT NULL,
     nazwisko VARCHAR(40) NOT NULL,
     dataUrodzenia date NOT NULL,
@@ -68,30 +103,27 @@ CREATE TABLE Pracownicy (
 CREATE TABLE UmowyPracownikow (
     idUmowy INT NOT NULL ,
     idPracownika INT REFERENCES Pracownicy(idPracownika) ON DELETE CASCADE,
-    dataRozpoczecia date NOT NULL,
+    dataRozpoczecia DATE NOT NULL,
     typUmowy VARCHAR(20) NOT NULL,
-    okresTrawania INT NOT NULL,
+    okresTrwania INT NOT NULL,
     wynagrodzenie MONEY NOT NULL,
-    warunkiPracy warunki NOT NULL
+    warunkiPracy WARUNKI NOT NULL
 );
 
 CREATE TABLE KierowcyAutobusow (
-    idKierowcy INT PRIMARY KEY ,
+    idLicencji INT PRIMARY KEY,
     idPracownika INT REFERENCES Pracownicy(idPracownika) ON DELETE CASCADE,
     licencjaOd DATE NOT NULL,
     licencjaDo DATE NOT NULL
 );
 
 CREATE TABLE KierowcyTramwajow (
-    idKierowcy INT PRIMARY KEY,
+    idLicencji INT PRIMARY KEY,
     idPracownika INT REFERENCES Pracownicy(idPracownika) ON DELETE CASCADE,
     licencjaOd DATE NOT NULL,
     licencjaDo DATE NOT NULL
 );
 
-CREATE TYPE typZwolnienia AS ENUM ('chorobowe', 'urlop');
-
-CREATE TYPE statusZwolnienia AS ENUM ('zaakceptowany', 'oczekujacy');
 
 CREATE TABLE Zwolnienia (
     idZwolnienia INT PRIMARY KEY,
@@ -102,20 +134,6 @@ CREATE TABLE Zwolnienia (
     status statusZwolnienia NOT NULL
 );
 
-CREATE TYPE typBiletu as ENUM ('normalny', 'ulgowy', 'metropolitalny', 'mieszkanca',
-    'socjalny', 'bezrobotny', 'firmowy');
-
-CREATE TYPE zasiegBiletu as ENUM ('I', 'II', 'III', 'I+II', 'II+III',
-    'I+II+III');
-
-CREATE TYPE okresBiletu as ENUM ('20-minutowy', '60-minutowy',
-    '90-minutowy', '24-godzinny', '48-godzinny', '72-godzinny,'
-    '7-dniowy', 'weekendowy'
-);
-
-CREATE TYPE metodaPlatnosci as ENUM('karta', 'gotowka', 'przelew', 'mobilna');
-
-CREATE TYPE miejsceKupna as ENUM('kasownik', 'elektronicznie');
 
 CREATE TABLE Bilety (
     idBiletu INT PRIMARY KEY ,
@@ -129,9 +147,6 @@ CREATE TABLE Bilety (
     cena MONEY NOT NULL
 );
 
-CREATE TYPE statusKlienta AS ENUM ('aktywny', 'nieaktywny', 'zablokowany');
-
-CREATE TYPE statusZnizki AS ENUM ('obowiazuje', 'nieobowiazuje');
 
 CREATE TABLE Klienci (
     idKlienta INT PRIMARY KEY ,
@@ -147,13 +162,9 @@ CREATE TABLE Klienci (
 );
 
 
-CREATE TYPE typKarty AS ENUM ('legitymacja studencka/doktorska',
-    'standardowa', 'senior');
-
-CREATE TYPE statusKarty AS ENUM ('aktywna', 'zawieszona', 'wygasla');
 
 CREATE TABLE KartyMiejskie (
-    idKarty INT PRIMARY KEY ,
+    idKarty INT PRIMARY KEY,
     idKlienta INT REFERENCES Klienci(idKlienta) ON DELETE CASCADE,
     numerKarty INT NOT NULL,
     typ typKarty NOT NULL,
@@ -162,8 +173,25 @@ CREATE TABLE KartyMiejskie (
     waznaDo DATE NOT NULL,
     status statusKarty NOT NULL,
     saldo MONEY DEFAULT NULL
-)
+);
 
+CREATE TABLE Transakcje (
+    idTransakcji INT PRIMARY KEY,
+    idKarty INT REFERENCES KartyMiejskie(idKarty),
+    typ typBiletu NOT NULL,
+    ilosc INT NOT NULL,
+    kwotaZakupu MONEY NOT NULL,
+    dataTransakcji DATE NOT NULL,
+    godzinaTransakcji DATE NOT NULL
+);
+
+CREATE TABLE Doladowania (
+    idDoladowania INT PRIMARY KEY,
+    idKarty INT REFERENCES KartyMiejskie(idKarty),
+    kwota MONEY  NOT NULL,
+    dataTransakcji DATE NOT NULL,
+    godzinaTransakcji DATE NOT NULL
+);
 
 
 
