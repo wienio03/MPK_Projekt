@@ -100,12 +100,15 @@ CREATE SEQUENCE sekwencjaLinie AS INT
     START 1
     CACHE 1;
 
+CREATE TYPE TypLinii AS ENUM('zwykla', 'nocna', 'aglomeracyjna', 'zastepdza');
+
 DROP TABLE IF EXISTS LinieTramwajowe;
 CREATE TABLE LinieTramwajowe(
     idLinii INT PRIMARY KEY DEFAULT nextval(sekwencjaLinie),
     numer INT,
     poczatek VARCHAR(50) REFERENCES PetleTramwajowe,
-    koniec VARCHAR(50) REFERENCES PetleTramwajowe
+    koniec VARCHAR(50) REFERENCES PetleTramwajowe,
+    typ TypLinii NOT NULL
 );
 
 DROP TABLE IF EXISTS LinieAutobusowe;
@@ -113,7 +116,8 @@ CREATE TABLE LinieAutobusowe(
     idLinii INT PRIMARY KEY DEFAULT nextval(sekwencjaLinie),
     numer INT,
     poczatek VARCHAR(50) REFERENCES PetleAutobusowe,
-    koniec VARCHAR(50) REFERENCES PetleAutobusowe
+    koniec VARCHAR(50) REFERENCES PetleAutobusowe,
+    typ TypLinii NOT NULL
 );
 
 DROP TABLE IF EXISTS PrzejazdyTramwajowe;
@@ -206,7 +210,35 @@ VALUES
 INSERT INTO PetleTramwajowe(nazwa, adres, iloscTorow, stan)
 VALUES
     ('Czerwone Maki P+R', 'Czerwone Maki 77', 2, 'czynny'),
-    ('Mały Płaszów P+R', 'Mały Płaszów 7', 2, 'czynny')
+    ('Mały Płaszów P+R', 'Mały Płaszów 7', 2, 'czynny'),
+    ('Dworzec Towarowy', 'Kamienna 17', 2, 'czynny'),
+    ('Papierni Prądnickich', 'Papierni Prądnickich', 1, 'remontowany'),
+    ('Osiedle Piastów', 'Osiedle Bohaterów Września 68C', 2, 'czynny');
+
+INSERT INTO PetleAutobusowe(nazwa, adres, stan)
+VALUES
+    ('Czerwone Maki P+R', 'Czerwone Maki 77', 'czynny'),
+    ('Pod Fortem', 'Profesora Wojciecha Marii Bartla', 'czynny'),
+    ('Krowodrza Górka P+R', 'Krowoderskich Zuchów 13', 'czynny'),
+    ('Mistrzejowice', 'Ks. Kazimierza Jancarza 74', 'czynny'),
+    ('Azory', 'Wojciecha Weissa 16', 'czynny'),
+    ('Plac Centralny im. R.Reagana', 'Plac Centralny im. R.Reagana', 'czynny');
+
+INSERT INTO LinieTramwajowe (numer, poczatek, koniec, typ)
+VALUES
+    (11, 'Czerwone Maki P+R', 'Mały Płaszów P+R', 'zwykla'),
+    (17, 'Czerwone Maki P+R', 'Dworzec Towarowy', 'zwykla'),
+    (18, 'Czerwone Maki P+R', 'Papierni Prądnickich', 'zwykla'),
+    (52, 'Czerwone Maki P+R', 'Osiedle Piastów', 'zwykla');
+
+INSERT INTO LinieAutobusowe(numer, poczatek, koniec, typ)
+VALUES
+    (194, 'Pod Fortem', 'Krowodrza Górka', 'zwykla'),
+    (578, 'Czerwone Maki P+R', 'Mistrzejowice', 'zwykla'),
+    (494, 'Pod Fortem', 'Azory', 'zwykla'),
+    (662, 'Czerwone Maki P+R', 'Plac Centralny im. R.Reagana', 'nocna');
+
+
 
 --wyzwalacze
  -- jak usuwamy kierowce to przypisujemy jego przyszlym kursom nowych
