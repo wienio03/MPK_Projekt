@@ -1,15 +1,12 @@
-CREATE extension plpythonu;
+CREATE extension plpython3u;
 
-CREATE OR REPLACE FUNCTION czasPodrozy(zajezdnia text, przystanek text)
+CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
  RETURNS text
- LANGUAGE plpythonu
+ LANGUAGE plpython3u
  AS $function$
     import requests, json
-    try:
-        url =https://maps.googleapis.com/maps/api/distancematrix/json
-  ?destinations=New%20York%20City%2C%20NY
-  &origins=Washington%2C%20DC%7CBoston
-  &units=imperial
-  &key=YOUR_API_KEY
-        wynik = requests.request
+    url = 'https://maps.googleapis.com/maps/api/distancematrix/json'
+    parametry = { 'destinations' : adresObecny', 'origins': adresZajezdni, 'units': 'metric', 'key' : 'AIzaSyC1-UIX4rOThD98CTIcHNQ9rwpAqCJfoVg'}
+    wynik = requests.get(url, params=parametry)
+    return(wynik.json()['rows'][0]['elements'][0]['duration']['text']) // zwraca zapis tekstowy przewidywanego czasu podrozy
 $function$
