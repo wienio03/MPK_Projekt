@@ -156,7 +156,7 @@ CREATE TABLE RozkladTramwaje(
 DROP TABLE IF EXISTS RozkladAutobusy;
 CREATE TABLE RozkladAutobusy(
     przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe,
-    linia INT REFERENCES LinieAutobusowe(numer),
+    idlinia INT REFERENCES LinieAutobusowe(numer),
     idKursu INT DEFAULT nextval(sekwencjaKursy),
     godzina TIME,
     PRIMARY KEY (przystanek, linia, idKursu)
@@ -238,7 +238,25 @@ VALUES
     (494, 'Pod Fortem', 'Azory', 'zwykla'),
     (662, 'Czerwone Maki P+R', 'Plac Centralny im. R.Reagana', 'nocna');
 
+INSERT INTO PrzystankiTramwajowe(nazwa, podwojny, stan)
+VALUES
+    ('Czerwone Maki P+R 01', FALSE, 'czynny'),
+    ('Norymberska 02', False, 'czynny'),
+    ('Rondo Grunwaldzkie 02', True, 'czynny'),
+    ('Norymberska 01', False, 'czynny'),
+    ('Rondo Grunwaldzkie 01', True, 'czynny');
+
+INSERT INTO PrzystankiAutobusowe(nazwa, podwojny, stan)
+VALUES
+    ('Makowskiego 01', False, 'czynny'),
+    ('Rondo Grunwaldzkie 02', True, 'czyny'),
+    ('Lipińskiego 03', False, 'czynny'),
+    ('Makowskiego 04', False, 'czynny'),
+    ('Rondo Grunwaldzkie 01', True, 'czyny'),
+    ('Lipińskiego 04', False, 'czynny');
+
+INSERT INTO RozkladTramwaje(przystanek, linia, godzina)
+VALUES
+    ('Czerwone Maki P+R', 11, '10:10');
 
 
---wyzwalacze
- -- jak usuwamy kierowce to przypisujemy jego przyszlym kursom nowych
