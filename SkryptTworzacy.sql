@@ -138,17 +138,17 @@ CREATE TABLE PrzejazdyAutobusowe(
     data DATE NOT NULL
 );
 
-DROP SEQUENCE IF EXISTS sekwencjaKursy;
-CREATE SEQUENCE sekwencjaKursy AS INT
-    INCREMENT BY 1
-    START WITH 1
-    CACHE 1;
+--DROP SEQUENCE IF EXISTS sekwencjaKursy;
+--CREATE SEQUENCE sekwencjaKursy AS INT
+    --INCREMENT BY 1
+    --START WITH 1
+    --CACHE 1;
 
 DROP TABLE IF EXISTS RozkladTramwaje;
 CREATE TABLE RozkladTramwaje(
     przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe,
     linia INT REFERENCES LinieTramwajowe(numer),
-    idKursu INT DEFAULT nextval(sekwencjaKursy),
+    idKursu INT DEFAULT 0,
     godzina TIME,
     PRIMARY KEY (przystanek, linia, idKursu)
 );
@@ -157,7 +157,7 @@ DROP TABLE IF EXISTS RozkladAutobusy;
 CREATE TABLE RozkladAutobusy(
     przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe,
     idlinia INT REFERENCES LinieAutobusowe(numer),
-    idKursu INT DEFAULT nextval(sekwencjaKursy),
+    idKursu INT DEFAULT 0,
     godzina TIME,
     PRIMARY KEY (przystanek, linia, idKursu)
 );
@@ -212,7 +212,7 @@ VALUES
     ('Czerwone Maki P+R', 'Czerwone Maki 77', 2, 'czynny'),
     ('Mały Płaszów P+R', 'Mały Płaszów 7', 2, 'czynny'),
     ('Dworzec Towarowy', 'Kamienna 17', 2, 'czynny'),
-    ('Papierni Prądnickich', 'Papierni Prądnickich', 1, 'remontowany'),
+    ('Górka Narodowa P+R', 'Belwederczyków 7', 1, 'remontowany'),
     ('Osiedle Piastów', 'Osiedle Bohaterów Września 68C', 2, 'czynny');
 
 INSERT INTO PetleAutobusowe(nazwa, adres, stan)
@@ -228,7 +228,7 @@ INSERT INTO LinieTramwajowe (numer, poczatek, koniec, typ)
 VALUES
     (11, 'Czerwone Maki P+R', 'Mały Płaszów P+R', 'zwykla'),
     (17, 'Czerwone Maki P+R', 'Dworzec Towarowy', 'zwykla'),
-    (18, 'Czerwone Maki P+R', 'Papierni Prądnickich', 'zwykla'),
+    (18, 'Czerwone Maki P+R', 'Górka Narodowa P+R', 'zwykla'),
     (52, 'Czerwone Maki P+R', 'Osiedle Piastów', 'zwykla');
 
 INSERT INTO LinieAutobusowe(numer, poczatek, koniec, typ)
@@ -258,5 +258,13 @@ VALUES
 INSERT INTO RozkladTramwaje(przystanek, linia, godzina)
 VALUES
     ('Czerwone Maki P+R', 11, '10:10');
+
+
+
+CREATE OR REPLACE TRIGGER numerOdjazduTramwaj AFTER INSERT ON RozkladTramwaje
+    EXECUTE PROCEDURE WstawNumerOdjazdu('Tramwaj');
+
+CREATE OR REPLACE TRIGGER numerOdjazduAutobus AFTER INSERT ON RozkladAutobusy
+    EXECUTE PROCEDURE WstawNumerOdjazdu('Autobus');
 
 
