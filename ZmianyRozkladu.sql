@@ -15,8 +15,11 @@ BEGIN ATOMIC
         DECLARE
             zmienianyPrzystanek VARCHAR := (
                 SELECT przystanek FROM RozkladAutobusy WHERE idKursu = 0);
+            zmienianaLinia varchar := (
+                SELECT linia FROM RozkladAutobusy WHERE idKursu = 0);
             max INT := (
-                SELECT MAX(idKursu) FROM RozkladAutobusy WHERE przystanek = zmienianyPrzystanek);
+                SELECT MAX(idKursu) FROM RozkladAutobusy
+                WHERE przystanek = zmienianyPrzystanek AND linia = zmienianaLinia);
         BEGIN
             UPDATE RozkladAutobusy AS R SET R.idKursu = max + 1
             WHERE R.przystanek = zmienianyPrzystanek AND R.idKursu = 0;
