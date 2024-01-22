@@ -12,6 +12,7 @@ CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
         'key' : 'TODO'
     }
     wynik = requests.get(url, params=parametry)
-    return(wynik.json()['rows'][0]['elements'][0]['duration']['text']) // zwraca zapis tekstowy przewidywanego czasu podrozy
+    return(wynik.json()['rows'][0]['elements'][0]['duration']['text'])
+    // zwraca zapis tekstowy przewidywanego czasu podrozy
 $$
  LANGUAGE plpython3u;

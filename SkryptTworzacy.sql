@@ -257,8 +257,35 @@ VALUES
 
 INSERT INTO RozkladTramwaje(przystanek, linia, godzina)
 VALUES
-    ('Czerwone Maki P+R', 11, '10:10');
+    ('Czerwone Maki P+R 01', 578, '10:10'),
+    ('Czerwone Maki P+R 01', 11, '10:25'),
+    ('Czerwone Maki P+R 01', 18, '11:11'),
+    ('Czerwone Maki P+R 01', 18, '11:19'),
+    ('Czerwone Maki P+R 01', 17, '12:16'),
+    ('Czerwone Maki P+R 01', 17, '12:31'),
+    ('Czerwone Maki P+R 01', 52, '13:07'),
+    ('Czerwone Maki P+R 01', 52, '13:14'),
+    ('Rondzo Grunwaldzkie 01', 52, '13:04'),
+    ('Rondzo Grunwaldzkie 01', 52, '13:12'),
+    ('Rondzo Grunwaldzkie 01', 18, '15:07'),
+    ('Rondzo Grunwaldzkie 01', 18, '15:14');
 
+INSERT INTO RozkladAutobusy(przystanek, linia, godzina)
+VALUES
+    ('Lipińskiego 04', 578, '11:04'),
+    ('Lipińskiego 04', 578, '11:24'),
+    ('Lipińskiego 04', 662, '00:18'),
+    ('Lipińskiego 04', 662, '01:18'),
+    ('Lipińskiego 03', 662, '00:38'),
+    ('Lipińskiego 03', 662, '01:38'),
+    ('Makowskiego 01', 194, '09:10'),
+    ('Makowskiego 01', 194, '09:25'),
+    ('Makowskiego 04', 194, '08:05'),
+    ('Makowskiego 04', 194, '08:20'),
+    ('Rondo Grunwaldzkie 01', 494, '11:06'),
+    ('Rondo Grunwaldzkie 01', 494, '11:26'),
+    ('Rondo Grunwaldzkie 02', 494, '11:01'),
+    ('Rondo Grunwaldzkie 02', 494, '11:21');
 
 
 CREATE OR REPLACE TRIGGER numerOdjazduTramwaj AFTER INSERT ON RozkladTramwaje

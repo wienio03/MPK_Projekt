@@ -8,6 +8,7 @@ BEGIN ATOMIC
             max INT := (
                 SELECT MAX(idKursu) FROM RozkladTramwaje WHERE przystanek = zmienianyPrzystanek);
         BEGIN
+            SELECT * FROM NEW.RozkladTramwaje;
             UPDATE RozkladTramwaje AS R SET R.idKursu = max + 1
             WHERE R.przystanek = zmienianyPrzystanek AND R.idKursu = 0
         END;
@@ -27,4 +28,4 @@ BEGIN ATOMIC
     END CASE;
 END;
 
-
+--przerobic na funkcje triggeru

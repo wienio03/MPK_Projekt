@@ -1,5 +1,5 @@
-DECLARE @przystanek VARCHAR(40)
+DECLARE miejsceAwarii VARCHAR;
 CREATE VIEW PojazdyZastepcze AS
-    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, @przystanek)
+    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, miejsceAwarii)
     FROM Autobusy A
         JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa
