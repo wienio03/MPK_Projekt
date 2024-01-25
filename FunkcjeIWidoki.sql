@@ -1,4 +1,4 @@
-CREATE EXTENSION plpython3u;
+CREATE LANGUAGE plpython3u;
 
 CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
  RETURNS text
@@ -58,11 +58,11 @@ BEGIN
 
     RETURN annual_income;
 END;
-$$
+$$;
 
-DECLARE miejsceAwarii VARCHAR;
+
 CREATE VIEW PojazdyZastepcze AS
-    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, miejsceAwarii)
+    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, EXEC )
     FROM Autobusy A
         JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa
 

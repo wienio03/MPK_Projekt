@@ -1,29 +1,63 @@
-CREATE OR REPLACE PROCEDURE WstawNumerOdjazdu (Rodzaj varchar)
-    LANGUAGE sql
-BEGIN ATOMIC
-CASE Rodzaj WHEN 'Tramwaj' THEN
-    DECLARE
-        zmienianyPrzystanek VARCHAR := (
-            SELECT przystanek FROM RozkladTramwaje WHERE idKursu = 0);
-        max INT := (
-            SELECT MAX(idKursu) FROM RozkladTramwaje WHERE przystanek = zmienianyPrzystanek);
+--wstawia id kursu, które są różne dla danej lini na danym przystanku
+CREATE OR REPLACE FUNCTION wstawIdKursu()
+    RETURNS trigger AS $$
+        DECLARE rodzaj text = TG_ARGV[0];
     BEGIN
-        SELECT * FROM NEW.RozkladTramwaje;
-        UPDATE RozkladTramwaje AS R SET R.idKursu = max + 1
-        WHERE R.przystanek = zmienianyPrzystanek AND R.idKursu = 0
+        CASE rodzaj WHEN 'tramwaj' THEN
+            DECLARE max INT = (SELECT Max(RozkladTramwaje.idkursu) FROM RozkladTramwaje
+                WHERE przystanek = NEW.przystanek AND linia = NEW.linia);
+            BEGIN
+                UPDATE RozkladTramwaje SET idKursu = max + 1
+                WHERE idkursu = NEW.idKursu AND przystanek = NEW.przystanek AND linia = NEW.linia;
+            END;
+        WHEN 'autobus' THEN
+            DECLARE max INT = (SELECT Max(RozkladAutobusy.idkursu) FROM RozkladAutobusy
+                WHERE przystanek = NEW.przystanek AND linia = NEW.linia);
+            BEGIN
+                UPDATE RozkladAutobusy SET idKursu = max + 1
+                WHERE idkursu = NEW.idKursu AND przystanek = NEW.przystanek AND linia = NEW.linia;
+            END;
+        END CASE;
     END;
-            WHEN 'Autobus' THEN
-                DECLARE
-                    zmienianyPrzystanek VARCHAR := (
-                        SELECT przystanek FROM RozkladAutobusy WHERE idKursu = 0);
-                    zmienianaLinia varchar := (
-                        SELECT linia FROM RozkladAutobusy WHERE idKursu = 0);
-                    max INT := (
-                        SELECT MAX(idKursu) FROM RozkladAutobusy
-                        WHERE przystanek = zmienianyPrzystanek AND linia = zmienianaLinia);
-                BEGIN
-                    UPDATE RozkladAutobusy AS R SET R.idKursu = max + 1
-                    WHERE R.przystanek = zmienianyPrzystanek AND R.idKursu = 0;
-                END;
-    END CASE;
-END;
+$$ LANGUAGE plpgsql;
+
+--sprawdza czy zajezdnia jest czynna i czy są w niej dostępne miejsca
+CREATE OR REPLACE FUNCTION sprawdzStanZajezdni()
+    RETURNS TRIGGER AS $$
+        DECLARE rodzaj text = TG_ARGV[0];
+                miejsca int;
+                STAN varchar;
+                obecne int;
+    BEGIN
+        CASE rodzaj WHEN 'Tramwaj' THEN
+            miejsca := (SELECT maxPojazdow FROM ZajezdnieTramwajowe
+                    WHERE nazwa = NEW.zajezdnia);
+            stan := (SELECT stan FROM ZajezdnieTramwajowe
+                    WHERE nazwa = NEW.zajezdnia);
+            obecne := (SELECT COUNT(*) FROM Tramwaje
+                    WHERE zajezdnia = NEW.zajezdnia);
+        WHEN 'Autobus' THEN
+            miejsca := (SELECT maxPojazdow FROM ZajezdnieAutobusowe
+                    WHERE nazwa = NEW.zajezdnia);
+            stan := (SELECT stan FROM zajezdnieautobusowe
+                    WHERE nazwa = NEW.zajezdnia);
+            obecne := (SELECT COUNT(*) FROM Autobusy
+                    WHERE zajezdnia = NEW.zajezdnia);
+        END CASE;
+            IF stan <> 'czynny' THEN
+                RAISE EXCEPTION 'Nie można dodać pojazdu do zajezdni, ponieważ jest nieczynna';
+            ELSEIF obecne >= miejsca THEN
+                RAISE EXCEPTION 'W zajezdni znajduje się już maksymalna dozwolona liczba pojazdów';
+            END IF;
+    END
+$$ LANGUAGE plpgsql;
+
+--sprawdza czy kierowca nie jest na urlopie, czy nie jest przypisany do innego przejazdu w tym samym czasie,
+--czy pojazd jest czynny oraz czy pojazd nie jest przypisany do kursu w tym samym czasie
+CREATE OR REPLACE FUNCTION sprawdzDostepnoscKierowcyIPojazdu()
+RETURNS TRIGGER AS $$
+
+BEGIN
+
+END
+$$

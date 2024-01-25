@@ -2,7 +2,10 @@
 --tworzenie tabel--
 ---------------------------------------------------------------------------------------------------------------
 
-DROP DATABASE IF EXISTS MPK;
+--DROP DATABASE IF EXISTS MPK;
+
+--CREATE DATABASE MPK;
+
 
 DROP TABLE IF EXISTS UmowyPracownikow;
 
@@ -100,7 +103,7 @@ DROP TYPE IF EXISTS stanMiejsca CASCADE;
 
 DROP TYPE IF EXISTS typLinii CASCADE;
 
-CREATE DATABASE MPK;
+
 
 CREATE TYPE statusPracownika AS ENUM ('zwolnienie', 'aktywny', 'urlop');
 
@@ -308,73 +311,73 @@ CREATE TABLE Tramwaje(
 CREATE TABLE Autobusy(
     numerPojazdu VARCHAR(10) PRIMARY KEY,
     model VARCHAR(40) REFERENCES ModeleAutobusow(model) ON DELETE CASCADE ,
-    zajezdnia VARCHAR(50) REFERENCES ZajezdnieAutobusowe(nazwa) ON DELETE SET NULL ,
+    zajezdnia VARCHAR(50) REFERENCES ZajezdnieAutobusowe(nazwa) ON DELETE SET NULL,
     stan stanPojazdu NOT NULL
 
 );
 
 CREATE TABLE PrzystankiTramwajowe(
-                                     nazwa VARCHAR(50) PRIMARY KEY,
-                                     podwojny BOOLEAN NOT NULL,
-                                     stan stanMiejsca NOT NULL
+    nazwa VARCHAR(50) PRIMARY KEY,
+    podwojny BOOLEAN NOT NULL,
+    stan stanMiejsca NOT NULL
 );
 
 CREATE TABLE PrzystankiAutobusowe(
-                                     nazwa VARCHAR(50) PRIMARY KEY,
-                                     podwojny BOOLEAN NOT NULL,
-                                     stan stanMiejsca NOT NULL
+    nazwa VARCHAR(50) PRIMARY KEY,
+    podwojny BOOLEAN NOT NULL,
+    stan stanMiejsca NOT NULL
 );
 
 CREATE TABLE PetleTramwajowe(
-                                nazwa VARCHAR(50) PRIMARY KEY,
-                                adres VARCHAR(50) NOT NULL UNIQUE,
-                                iloscTorow INT,
-                                stan stanMiejsca NOT NULL
+    nazwa VARCHAR(50) PRIMARY KEY,
+    adres VARCHAR(50) NOT NULL UNIQUE,
+    iloscTorow INT,
+    stan stanMiejsca NOT NULL
 );
 
 CREATE TABLE PetleAutobusowe(
-                                nazwa VARCHAR(50) PRIMARY KEY,
-                                adres VARCHAR(50) NOT NULL UNIQUE,
-                                stan stanMiejsca NOT NULL
+    nazwa VARCHAR(50) PRIMARY KEY,
+    adres VARCHAR(50) NOT NULL UNIQUE,
+    stan stanMiejsca NOT NULL
 );
 
 CREATE TABLE LinieTramwajowe(
-                                idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
-                                numer INT UNIQUE,
-                                poczatek VARCHAR(50) REFERENCES PetleTramwajowe,
-                                koniec VARCHAR(50) REFERENCES PetleTramwajowe,
-                                typ typLinii NOT NULL
+    idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
+    numer INT UNIQUE,
+    poczatek VARCHAR(50) REFERENCES PetleTramwajowe,
+    koniec VARCHAR(50) REFERENCES PetleTramwajowe,
+    typ typLinii NOT NULL
 );
 
 CREATE TABLE LinieAutobusowe(
-                                idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
-                                numer INT UNIQUE,
-                                poczatek VARCHAR(50) REFERENCES PetleAutobusowe,
-                                koniec VARCHAR(50) REFERENCES PetleAutobusowe,
-                                typ typLinii NOT NULL
+    idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
+    numer INT UNIQUE,
+    poczatek VARCHAR(50) REFERENCES PetleAutobusowe,
+    koniec VARCHAR(50) REFERENCES PetleAutobusowe,
+    typ typLinii NOT NULL
 );
 
 CREATE TABLE RozkladTramwaje(
-                                przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe,
-                                linia INT REFERENCES LinieTramwajowe(numer),
-                                idKursu INT UNIQUE DEFAULT nextval('sekwencjaIDKursu'), --do zmiany!!
-                                godzina TIME,
-                                PRIMARY KEY (przystanek, linia, idKursu)
+    przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe,
+    linia INT REFERENCES LinieTramwajowe(numer),
+    idKursu INT UNIQUE DEFAULT nextval('sekwencjaIDKursu'), --do zmiany!!
+    godzina TIME,
+    PRIMARY KEY (przystanek, linia, idKursu)
 );
 
 CREATE TABLE RozkladAutobusy(
-                                przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe,
-                                linia INT REFERENCES LinieAutobusowe(numer),
-                                idKursu INT UNIQUE DEFAULT nextval('sekwencjaIDKursu'), --do zmiany!!
-                                godzina TIME,
-                                PRIMARY KEY (przystanek, linia, idKursu)
+    przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe,
+    linia INT REFERENCES LinieAutobusowe(numer),
+    idKursu INT UNIQUE DEFAULT nextval('sekwencjaIDKursu'), --do zmiany!!
+    godzina TIME,
+    PRIMARY KEY (przystanek, linia, idKursu)
 );
 
 
 CREATE TABLE PrzejazdyTramwajowe(
     idPrzejazdu INT PRIMARY KEY,
     pojazd VARCHAR(10) REFERENCES Tramwaje ON DELETE SET NULL,
-    idKursu INT REFERENCES RozkladTramwaje(idKursu),
+    idKursu INT REFERENCES RozkladTramwaje(idKursu) ON DELETE CASCADE,
     kierowca VARCHAR REFERENCES KierowcyTramwajow ON DELETE SET NULL,
     data DATE NOT NULL
 );
@@ -654,13 +657,26 @@ VALUES
     ('Rondo Grunwaldzkie 02', 494, '11:01'),
     ('Rondo Grunwaldzkie 02', 494, '11:21');
 
-/*
-CREATE OR REPLACE TRIGGER numerOdjazduTramwaj AFTER INSERT ON RozkladTramwaje
-    EXECUTE PROCEDURE WstawNumerOdjazdu('Tramwaj');
+---------------------------------------------------------------------------------------------------------------
+--wyzwalacze--
+---------------------------------------------------------------------------------------------------------------
+CREATE OR REPLACE TRIGGER tr_after_rozkladTramwaje AFTER INSERT ON RozkladTramwaje
+    FOR EACH ROW EXECUTE FUNCTION wstawidkursu('Tramwaj');
 
-CREATE OR REPLACE TRIGGER numerOdjazduAutobus AFTER INSERT ON RozkladAutobusy
-    EXECUTE PROCEDURE WstawNumerOdjazdu('Autobus');
- */
+CREATE OR REPLACE TRIGGER tr_after_rozkladAutobusy AFTER INSERT ON RozkladAutobusy
+    EXECUTE FUNCTION wstawidkursu('Autobus');
+
+CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje
+    EXECUTE FUNCTION sprawdzStanZajezdni('Tramwaj');
+
+CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
+    EXECUTE FUNCTION sprawdzStanZajezdni('Autobus');
+
+CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
+    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_bfore_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
+    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
 ---------------------------------------------------------------------------------------------------------------
 
 
