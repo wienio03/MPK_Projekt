@@ -5,17 +5,17 @@ CREATE OR REPLACE FUNCTION wstawIdKursu()
     BEGIN
         CASE rodzaj WHEN 'tramwaj' THEN
             DECLARE max INT = (SELECT Max(RozkladTramwaje.idkursu) FROM RozkladTramwaje
-                WHERE przystanek = NEW.przystanek AND linia = NEW.linia);
+                WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
             BEGIN
                 UPDATE RozkladTramwaje SET idKursu = max + 1
-                WHERE idkursu = NEW.idKursu AND przystanek = NEW.przystanek AND linia = NEW.linia;
+                WHERE idkursu = NEW.idKursu AND przystanek = NEW.przystanek AND idlinii = NEW.idlinii;
             END;
         WHEN 'autobus' THEN
             DECLARE max INT = (SELECT Max(RozkladAutobusy.idkursu) FROM RozkladAutobusy
-                WHERE przystanek = NEW.przystanek AND linia = NEW.linia);
+                WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
             BEGIN
                 UPDATE RozkladAutobusy SET idKursu = max + 1
-                WHERE idkursu = NEW.idKursu AND przystanek = NEW.przystanek AND linia = NEW.linia;
+                WHERE idkursu = NEW.idKursu AND przystanek = NEW.przystanek AND idlinii = NEW.idlinii;
             END;
         END CASE;
     END;

@@ -61,8 +61,25 @@ END;
 $$;
 
 
-CREATE VIEW PojazdyZastepcze AS
-    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, EXEC )
+CREATE VIEW PojazdyZastepcze (VARCHAR(10) numerPojazdu) AS
+    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, NULL )
     FROM Autobusy A
-        JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa
+        JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa;
+;
+
+CREATE VIEW PojazdySerwisowane AS
+    SELECT A.numerPojazdu, A.model, M.producent, MAX(P.data) as OstatnioUżytkowany FROM
+        Autobusy A JOIN ModeleAutobusow M ON A.model = M.model JOIN PrzejazdyAutobusowe P ON A.numerpojazdu = P.pojazd
+    WHERE A.stan = 'serwisowany'
+    GROUP BY A.numerPojazdu, A.model, M.producent
+    UNION
+    SELECT T.numerPojazdu, T.model, M.producent, MAX(P.data) as OstatnioUżytkowany FROM
+        Tramwaje T JOIN modeletramwajow M ON T.model = M.model JOIN przejazdytramwajowe P ON T.numerpojazdu = P.pojazd
+    WHERE T.stan = 'serwisowany'
+    GROUP BY T.numerPojazdu, T.model, M.producent;
+
+CREATE VIEW WszystkieLinie AS
+    SELECT * FROM LinieAutobusowe
+    UNION
+    SELECT * From linietramwajowe
 
