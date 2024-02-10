@@ -382,18 +382,18 @@ CREATE TABLE LinieAutobusowe(
 
 CREATE TABLE RozkladTramwaje(
     przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe,
-    linia INT REFERENCES LinieTramwajowe(numer),
-    idKursu INT UNIQUE DEFAULT nextval('sekwencjaIDKursu'), --do zmiany!!
+    idLinii INT REFERENCES LinieTramwajowe(idLinii),
+    idKursu INT DEFAULT 0,
     godzina TIME,
-    PRIMARY KEY (przystanek, linia, idKursu)
+    PRIMARY KEY (przystanek, idLinii, idKursu)
 );
 
 CREATE TABLE RozkladAutobusy(
     przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe,
-    linia INT REFERENCES LinieAutobusowe(numer),
-    idKursu INT UNIQUE DEFAULT nextval('sekwencjaIDKursu'), --do zmiany!!
+    idLinii INT REFERENCES LinieAutobusowe(idLinii),
+    idKursu INT DEFAULT 0,
     godzina TIME,
-    PRIMARY KEY (przystanek, linia, idKursu)
+    PRIMARY KEY (przystanek, idLinii, idKursu)
 );
 
 
@@ -708,37 +708,37 @@ VALUES
     ('Rondo Grunwaldzkie 01', True, 'czynny'),
     ('Lipińskiego 04', False, 'czynny');
 
-INSERT INTO RozkladTramwaje(przystanek, linia, godzina)
+INSERT INTO RozkladTramwaje(przystanek, idLinii, godzina)
 VALUES
-    ('Czerwone Maki P+R 01', 11, '10:10'),
-    ('Czerwone Maki P+R 01', 11, '10:25'),
-    ('Czerwone Maki P+R 01', 18, '11:11'),
-    ('Czerwone Maki P+R 01', 18, '11:19'),
-    ('Czerwone Maki P+R 01', 17, '12:16'),
-    ('Czerwone Maki P+R 01', 17, '12:31'),
-    ('Czerwone Maki P+R 01', 52, '13:07'),
-    ('Czerwone Maki P+R 01', 52, '13:14'),
-    ('Rondo Grunwaldzkie 01', 52, '13:04'),
-    ('Rondo Grunwaldzkie 01', 52, '13:12'),
-    ('Rondo Grunwaldzkie 01', 18, '15:07'),
-    ('Rondo Grunwaldzkie 01', 18, '15:14');
+    ('Czerwone Maki P+R 01', 1, '10:10'),
+    ('Czerwone Maki P+R 01', 1, '10:25'),
+    ('Czerwone Maki P+R 01', 3, '11:11'),
+    ('Czerwone Maki P+R 01', 3, '11:19'),
+    ('Czerwone Maki P+R 01', 2, '12:16'),
+    ('Czerwone Maki P+R 01', 2, '12:31'),
+    ('Czerwone Maki P+R 01', 4, '13:07'),
+    ('Czerwone Maki P+R 01', 4, '13:14'),
+    ('Rondo Grunwaldzkie 01', 4, '13:04'),
+    ('Rondo Grunwaldzkie 01', 4, '13:12'),
+    ('Rondo Grunwaldzkie 01', 3, '15:07'),
+    ('Rondo Grunwaldzkie 01', 3, '15:14');
 
-INSERT INTO RozkladAutobusy(przystanek, linia, godzina)
+INSERT INTO RozkladAutobusy(przystanek, idLinii, godzina)
 VALUES
-    ('Lipińskiego 04', 578, '11:04'),
-    ('Lipińskiego 04', 578, '11:24'),
-    ('Lipińskiego 04', 662, '00:18'),
-    ('Lipińskiego 04', 662, '01:18'),
-    ('Lipińskiego 03', 662, '00:38'),
-    ('Lipińskiego 03', 662, '01:38'),
-    ('Makowskiego 01', 194, '09:10'),
-    ('Makowskiego 01', 194, '09:25'),
-    ('Makowskiego 04', 194, '08:05'),
-    ('Makowskiego 04', 194, '08:20'),
-    ('Rondo Grunwaldzkie 01', 494, '11:06'),
-    ('Rondo Grunwaldzkie 01', 494, '11:26'),
-    ('Rondo Grunwaldzkie 02', 494, '11:01'),
-    ('Rondo Grunwaldzkie 02', 494, '11:21');
+    ('Lipińskiego 04', 6, '11:04'),
+    ('Lipińskiego 04', 6, '11:24'),
+    ('Lipińskiego 04', 8, '00:18'),
+    ('Lipińskiego 04', 8, '01:18'),
+    ('Lipińskiego 03', 8, '00:38'),
+    ('Lipińskiego 03', 8, '01:38'),
+    ('Makowskiego 01', 5, '09:10'),
+    ('Makowskiego 01', 5, '09:25'),
+    ('Makowskiego 04', 5, '08:05'),
+    ('Makowskiego 04', 5, '08:20'),
+    ('Rondo Grunwaldzkie 01', 7, '11:06'),
+    ('Rondo Grunwaldzkie 01', 7, '11:26'),
+    ('Rondo Grunwaldzkie 02', 7, '11:01'),
+    ('Rondo Grunwaldzkie 02', 7, '11:21');
 
 --dodac przejazdy
 
