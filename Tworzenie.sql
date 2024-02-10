@@ -103,7 +103,7 @@ DROP TYPE IF EXISTS stanMiejsca CASCADE;
 
 DROP TYPE IF EXISTS typLinii CASCADE;
 
-
+DROP TYPE IF EXISTS kwotaMandatu CASCADE;
 
 CREATE TYPE statusPracownika AS ENUM ('zwolnienie', 'aktywny', 'urlop');
 
@@ -146,6 +146,14 @@ CREATE TYPE stanPojazdu AS ENUM ('czynny', 'zepsuty', 'serwisowany' , 'wycofany'
 CREATE TYPE stanMiejsca AS ENUM('czynny', 'remontowany', 'wycofany');
 
 CREATE TYPE typLinii AS ENUM('zwykla', 'nocna', 'aglomeracyjna', 'zastepdza');
+
+CREATE TYPE kwotaMandatu AS ENUM(150, 240, 510);
+
+CREATE TYPE opisMandatu AS ENUM ('spowodowanie zatrzymania bez uzasadnionej przyczyny',
+    'naruszenie przepisów o przewozie zwierząt', 'nieważny dokument uprawniający do ulgi',
+    'niewazny dokument uprawniający do przejazdu darmowego');
+
+
 
 CREATE SEQUENCE sekwencjaLinie AS INT
     INCREMENT 1
@@ -206,6 +214,21 @@ CREATE TABLE Zwolnienia (
     stanZwolnienia statusZwolnienia NOT NULL
 );
 
+CREATE TABLE Pasażerowie (
+    idPasażera INT PRIMARY KEY,
+    Imie VARCHAR(50) NOT NULL,
+    Nazwisko VARCHAR(50) NOT NULL,
+    Adres VARCHAR(256) NOT NULL, -- DODAC WIDOK MANDATY
+    SumaMandatów INT NOT NULL DEFAULT 0
+);
+
+CREATE TABLE Mandaty (
+    idMandatu INT PRIMARY KEY,
+    idPasażera INT REFERENCES Pasażerowie(idPasażera) ON DELETE CASCADE,
+    kwota kwotaMandatu NOT NULL,
+    dataWystawienia DATE NOT NULL,
+    opis opisMandatu NOT NULL
+);
 
 CREATE TABLE Bilety (
     idBiletu INT PRIMARY KEY ,
@@ -216,9 +239,9 @@ CREATE TABLE Bilety (
     platnosc metodaPlatnosci NOT NULL,
     dataWydania DATE NOT NULL,
     czasWydania TIME NOT NULL,
-    cena MONEY NOT NULL
+    cena MONEY NOT NULL,
+    idPasażera INT REFERENCES Pasażerowie(idPasażera) ON DELETE CASCADE
 );
-
 
 CREATE TABLE Klienci (
     idKlienta INT PRIMARY KEY ,
@@ -376,17 +399,17 @@ CREATE TABLE RozkladAutobusy(
 
 CREATE TABLE PrzejazdyTramwajowe(
     idPrzejazdu INT PRIMARY KEY,
-    pojazd VARCHAR(10) REFERENCES Tramwaje ON DELETE SET NULL,
+    pojazd VARCHAR(10) REFERENCES Tramwaje(numerPojazdu) ON DELETE SET NULL,
     idKursu INT REFERENCES RozkladTramwaje(idKursu) ON DELETE CASCADE,
-    kierowca VARCHAR REFERENCES KierowcyTramwajow ON DELETE SET NULL,
+    kierowca VARCHAR REFERENCES KierowcyTramwajow(idLicencji) ON DELETE SET NULL,
     data DATE NOT NULL
 );
 
 CREATE TABLE PrzejazdyAutobusowe(
     idPrzejazdu INT PRIMARY KEY,
-    pojazd VARCHAR(10) REFERENCES Autobusy ON DELETE SET NULL ,
+    pojazd VARCHAR(10) REFERENCES Autobusy(numerPojazdu) ON DELETE SET NULL ,
     idKursu INT REFERENCES RozkladAutobusy(idKursu) ON DELETE CASCADE,
-    kierowca VARCHAR REFERENCES KierowcyAutobusow ON DELETE SET NULL ,
+    kierowca VARCHAR REFERENCES KierowcyAutobusow(idLicencji) ON DELETE SET NULL ,
     data DATE NOT NULL
 );
 
@@ -473,22 +496,56 @@ INSERT INTO Zwolnienia (idZwolnienia, idPracownika, dataRozpoczecia, dataZakoncz
   (19, 7, '2020-08-08', '2020-09-16', 'urlop bezpłatny', 'zakończone'),
   (20, 6, '2022-09-11', '2022-10-23', 'urlop bezpłatny', 'zakończone');
 
-INSERT INTO Bilety (idbiletu, typ, ulgowy, zasieg, okres, platnosc, datawydania, czaswydania, cena) VALUES
-(1, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'przelew blik', '2023-06-23', '17:33:44', 169.00),
-(2, 'firmowy', 'nie', 'I+II', 'miesięczny', 'aplikacja', '2023-04-30', '04:06:44', 144.00),
-(3, 'metropolitalny', 'tak', 'II+III', 'miesięczny', 'karta', '2023-06-08', '10:04:37', 84.50),
-(4, 'mieszkanca', 'nie', 'I', 'miesięczny', 'przelew blik', '2023-09-13', '04:34:58', 80.00),
-(5, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'aplikacja', '2023-09-20', '04:39:26', 169.00),
-(6, 'do kasowania', 'tak', 'I+II+III', '48-godzinny', 'aplikacja', '2023-12-19', '04:51:13', 17.50),
-(7, 'do kasowania', 'tak', 'I+II+III', '48-godzinny', 'aplikacja', '2023-08-26', '19:27:03', 17.50),
-(8, 'bezrobotny', 'nie', 'I+II', 'miesięczny', 'karta', '2023-04-16', '05:09:04', 50.00),
-(9, 'bezrobotny', 'nie', 'I+II+III', 'miesięczny', 'aplikacja', '2023-02-02', '02:38:55', 70.00),
-(10, 'socjalny', 'nie', 'I', 'miesięczny', 'karta', '2023-03-08', '14:34:17', 30.00),
-(11, 'bezrobotny', 'nie', 'I+II+III', 'miesięczny', 'aplikacja', '2023-03-13', '08:11:36', 70.00),
-(12, 'socjalny', 'nie', 'I+II+III', 'miesięczny', 'karta', '2023-08-07', '01:53:11', 70.00),
-(13, 'mieszkanca', 'nie', 'I', 'miesięczny 1 linia', 'aplikacja', '2023-05-23', '16:48:42', 80.00),
-(14, 'mieszkanca', 'tak', 'I', 'miesięczny', 'gotowka', '2023-03-20', '02:26:25', 40.00),
-(15, 'socjalny', 'nie', 'I+II', 'miesięczny', 'gotowka', '2023-12-27', '05:30:36', 50.00);
+INSERT INTO Pasażerowie (idPasażera, Imie, Nazwisko, Adres) VALUES
+(1, 'Jan', 'Nowak', 'ul. Floriańska 17, Kraków'),
+(2, 'Anna', 'Kowalska', 'ul. Grodzka 15, Kraków'),
+(3, 'Piotr', 'Wiśniewski', 'ul. Szeroka 2, Kraków'),
+(4, 'Katarzyna', 'Wójcik', 'ul. Długa 1, Kraków'),
+(5, 'Marcin', 'Kowalczyk', 'ul. Krótka 45, Kraków'),
+(6, 'Agnieszka', 'Kamińska', 'ul. Lubicz 56, Kraków'),
+(7, 'Tomasz', 'Lewandowski', 'ul. Basztowa 22, Kraków'),
+(8, 'Barbara', 'Zielińska', 'ul. Garbarska 15, Kraków'),
+(9, 'Krzysztof', 'Szymański', 'ul. Szewska 34, Kraków'),
+(10, 'Małgorzata', 'Woźniak', 'ul. Bracka 15, Kraków'),
+(11, 'Andrzej', 'Dąbrowski', 'ul. Poselska 22, Kraków'),
+(12, 'Alicja', 'Kozłowska', 'ul. Kanonicza 2, Kraków'),
+(13, 'Michał', 'Jankowski', 'ul. Św. Anny 87, Kraków'),
+(14, 'Dorota', 'Mazur', 'ul. Piłsudskiego 66, Kraków'),
+(15, 'Jakub', 'Wojciechowski', 'ul. Dietla 60, Kraków'),
+(16, 'Ewa', 'Kwiatkowska', 'ul. Starowiślna 24, Kraków'),
+(17, 'Robert', 'Kaczmarek', 'ul. Dunajewskiego 13, Kraków'),
+(18, 'Marta', 'Piotrowska', 'ul. Rakowicka 11, Kraków'),
+(19, 'Paweł', 'Grabowski', 'ul. Podwale 14, Kraków'),
+(20, 'Magdalena', 'Nowakowska', 'ul. Stolarska 28, Kraków');
+
+INSERT INTO Mandaty (idMandatu, idPasażera, kwota, dataWystawienia, opis) VALUES
+    (1, 1, 150, '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
+    (1, 2, 510, '24-01-2024', 'spowodowanie zatrzymania bez uzasadnionej przyczyny'),
+    (1, 4, 240, '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
+    (1, 15, 150, '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
+    (1, 11, 150, '24-01-2024', 'niewazny dokument uprawniający do ulgi'),
+    (1, 12, 240, '24-01-2024', 'nieważny dokument uprawniający do przejazdu darmowego'),
+    (1, 11, 240, '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
+    (1, 11, 150, '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
+    (1, 5, 510, '24-01-2024', 'spowodowanie zatrzymania bez uzasadnionej przyczyny'),
+    (1, 6, 150, '24-01-2024', 'nieważny dokument uprawniający do ulgi');
+
+INSERT INTO Bilety (idbiletu, typ, ulgowy, zasieg, okres, platnosc, datawydania, czaswydania, cena, idPasażera) VALUES
+(1, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'przelew blik', '2023-06-23', '17:33:44', 169.00, 1),
+(2, 'firmowy', 'nie', 'I+II', 'miesięczny', 'aplikacja', '2023-04-30', '04:06:44', 144.00, 2),
+(3, 'metropolitalny', 'tak', 'II+III', 'miesięczny', 'karta', '2023-06-08', '10:04:37', 84.50, 3),
+(4, 'mieszkanca', 'nie', 'I', 'miesięczny', 'przelew blik', '2023-09-13', '04:34:58', 80.00, 4),
+(5, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'aplikacja', '2023-09-20', '04:39:26', 169.00, 5),
+(6, 'do kasowania', 'tak', 'I+II+III', '48-godzinny', 'aplikacja', '2023-12-19', '04:51:13', 17.50, 6),
+(7, 'do kasowania', 'tak', 'I+II+III', '48-godzinny', 'aplikacja', '2023-08-26', '19:27:03', 17.50, 7),
+(8, 'bezrobotny', 'nie', 'I+II', 'miesięczny', 'karta', '2023-04-16', '05:09:04', 50.00, 8),
+(9, 'bezrobotny', 'nie', 'I+II+III', 'miesięczny', 'aplikacja', '2023-02-02', '02:38:55', 70.00, 9),
+(10, 'socjalny', 'nie', 'I', 'miesięczny', 'karta', '2023-03-08', '14:34:17', 30.00, 10),
+(11, 'bezrobotny', 'nie', 'I+II+III', 'miesięczny', 'aplikacja', '2023-03-13', '08:11:36', 70.00, 11),
+(12, 'socjalny', 'nie', 'I+II+III', 'miesięczny', 'karta', '2023-08-07', '01:53:11', 70.00, 12),
+(13, 'mieszkanca', 'nie', 'I', 'miesięczny 1 linia', 'aplikacja', '2023-05-23', '16:48:42', 80.00, 13),
+(14, 'mieszkanca', 'tak', 'I', 'miesięczny', 'gotowka', '2023-03-20', '02:26:25', 40.00, 14),
+(15, 'socjalny', 'nie', 'I+II', 'miesięczny', 'gotowka', '2023-12-27', '05:30:36', 50.00, 15);
 
 INSERT INTO Klienci (idKlienta, imie, nazwisko, dataUrodzenia, email, numerTelefonu, adresZamieszkania, dataRejestracji, stanKlienta, znizka) VALUES
 (1, 'Piotr', 'Wiśniewski', '1997-03-28', 'piotr.wiśniewski@example.com', '702375572', 'ul. Słoneczna 98, Kraków', '2023-08-16', 'aktywny', 'obowiazuje'),
@@ -573,9 +630,35 @@ VALUES
 INSERT INTO ZajezdnieAutobusowe(nazwa, adres, maxPojazdow, stan)
 VALUES
     ('Wola Duchacka', 'Walerego Sławka 10', 320, 'czynny'),
-    ('Płasszów', 'Biskupińska 2', 160, 'czynny'),
+    ('Płaszów', 'Biskupińska 2', 160, 'czynny'),
     ('Bieńczyce', 'Makuszyńskiego 34', 200, 'czynny'),
     ('Czyżyny', 'Osiedle 2 Pułku Lotniczego 26', 100, 'wycofany');
+
+INSERT INTO Autobusy(numerPojazdu, model, zajezdnia, stan)
+VALUES
+    ('DR541', 'Citaro Solo', 'Wola Duchacka', 'czynny'),
+    ('HY537', 'Urbino 12', 'Płaszów', 'czynny'),
+    ('RY217', '7900A Hybrid', 'Płaszów', 'serwisowany'),
+    ('RY223', 'Urbino 18 Electric', 'Bieńczyce', 'czynny'),
+    ('DR501', 'Urbino 12.9 Hybrid', 'Wola Duchacka', 'serwisowany'),
+    ('DR506', 'Urbino 18 Hybrid', 'Płaszów', 'czynny'),
+    ('DY116', 'Sancity', 'Czyżyny', 'serwisowany'),
+    ('RH255', 'Urbino 12', 'Czyżyny', 'czynny'),
+    ('RY201', 'Urbino 18 Hybrid', 'Wola Duchacka', 'czynny'),
+    ('RY200', 'Urbino 12', 'Płaszów', 'zepsuty');
+
+INSERT INTO Tramwaje(numerPojazdu, model, zajezdnia, stan)
+VALUES
+    ('KJ502', 'GT8S', 'Podgórze', 'czynny'),
+    ('EK403', 'EU8N', 'Podgórze', 'czynny'),
+    ('ER503', 'EU8N', 'Św. Wawrzyńca', 'czynny'),
+    ('EK523', 'EU8N', 'Św. Wawrzyńca', 'serwisowany'),
+    ('HK543', 'EU8N', 'Nowa Huta', 'czynny'),
+    ('RK423', 'EU8N', 'Św. Wawrzyńca', 'czynny'),
+    ('ER213', 'EU8N', 'Nowa Huta', 'serwisowany'),
+    ('EL113', 'EU8N', 'Podgórze', 'czynny'),
+    ('KJ423', 'EU8N', 'Podgórze', 'wycofany'),
+    ('ER455', 'EU8N', 'Św. Wawrzyńca', 'zepsuty');
 
 INSERT INTO PetleTramwajowe(nazwa, adres, iloscTorow, stan)
 VALUES
@@ -657,6 +740,9 @@ VALUES
     ('Rondo Grunwaldzkie 02', 494, '11:01'),
     ('Rondo Grunwaldzkie 02', 494, '11:21');
 
+--dodac przejazdy
+
+
 ---------------------------------------------------------------------------------------------------------------
 --wyzwalacze--
 ---------------------------------------------------------------------------------------------------------------
@@ -675,8 +761,12 @@ CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
 CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
 
-CREATE OR REPLACE TRIGGER tr_bfore_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
+CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_after_Mandaty AFTER INSERT ON Mandaty
+    EXECUTE FUNCTION nalozMandat();
+
 ---------------------------------------------------------------------------------------------------------------
 
 

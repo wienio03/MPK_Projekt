@@ -1,3 +1,4 @@
+
 CREATE LANGUAGE plpython3u;
 
 CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
@@ -15,10 +16,12 @@ CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
     return(wynik.json()['rows'][0]['elements'][0]['duration']['text'])
     // zwraca zapis tekstowy przewidywanego czasu podrozy
 $$
- LANGUAGE plpython3u;
 
+ LANGUAGE plpython3u;
 --widok pokazujacy laczne roczne zarobki z danego roku z biletow i kart miejskich osobno
+
 CREATE VIEW LaczneZarobki AS
+
 SELECT
     A.Rok AS Rok,
     A.SumaBilety AS SumaZBiletow,
@@ -65,4 +68,5 @@ CREATE VIEW PojazdyZastepcze AS
     SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, EXEC )
     FROM Autobusy A
         JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa
+
 
