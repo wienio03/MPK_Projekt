@@ -49,6 +49,10 @@ DROP TABLE IF EXISTS PetleTramwajowe CASCADE;
 
 DROP TABLE IF EXISTS PetleAutobusowe CASCADE;
 
+DROP TABLE IF EXISTS Pasażerowie CASCADE;
+
+DROP TABLE IF EXISTS Mandaty;
+
 DROP SEQUENCE IF EXISTS sekwencjaLinie CASCADE;
 
 DROP SEQUENCE IF EXISTS sekwencjaIDKursu CASCADE;
@@ -105,6 +109,8 @@ DROP TYPE IF EXISTS typLinii CASCADE;
 
 DROP TYPE IF EXISTS kwotaMandatu CASCADE;
 
+DROP TYPE IF EXISTS opisMandatu CASCADE;
+
 CREATE TYPE statusPracownika AS ENUM ('zwolnienie', 'aktywny', 'urlop');
 
 CREATE TYPE tryb AS ENUM ( 'stacjonarnie', 'hybrydowe', 'zdalnie');
@@ -147,7 +153,7 @@ CREATE TYPE stanMiejsca AS ENUM('czynny', 'remontowany', 'wycofany');
 
 CREATE TYPE typLinii AS ENUM('zwykla', 'nocna', 'aglomeracyjna', 'zastepdza');
 
-CREATE TYPE kwotaMandatu AS ENUM(150, 240, 510);
+CREATE TYPE kwotaMandatu AS ENUM('150', '240', '510');
 
 CREATE TYPE opisMandatu AS ENUM ('spowodowanie zatrzymania bez uzasadnionej przyczyny',
     'naruszenie przepisów o przewozie zwierząt', 'nieważny dokument uprawniający do ulgi',
@@ -396,11 +402,11 @@ CREATE TABLE RozkladAutobusy(
     PRIMARY KEY (przystanek, idLinii, idKursu)
 );
 
-
+/*
 CREATE TABLE PrzejazdyTramwajowe(
     idPrzejazdu INT PRIMARY KEY,
     pojazd VARCHAR(10) REFERENCES Tramwaje(numerPojazdu) ON DELETE SET NULL,
-    idKursu INT REFERENCES RozkladTramwaje(idKursu) ON DELETE CASCADE,
+    idKursu INT REFERENCES  RozkladTramwaje(idKursu)  ON DELETE CASCADE,
     kierowca VARCHAR REFERENCES KierowcyTramwajow(idLicencji) ON DELETE SET NULL,
     data DATE NOT NULL
 );
@@ -412,7 +418,7 @@ CREATE TABLE PrzejazdyAutobusowe(
     kierowca VARCHAR REFERENCES KierowcyAutobusow(idLicencji) ON DELETE SET NULL ,
     data DATE NOT NULL
 );
-
+*/
 
 ---------------------------------------------------------------------------------------------------------------
 --wypełnianie bazy danych--
@@ -519,16 +525,16 @@ INSERT INTO Pasażerowie (idPasażera, Imie, Nazwisko, Adres) VALUES
 (20, 'Magdalena', 'Nowakowska', 'ul. Stolarska 28, Kraków');
 
 INSERT INTO Mandaty (idMandatu, idPasażera, kwota, dataWystawienia, opis) VALUES
-    (1, 1, 150, '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
-    (1, 2, 510, '24-01-2024', 'spowodowanie zatrzymania bez uzasadnionej przyczyny'),
-    (1, 4, 240, '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
-    (1, 15, 150, '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
-    (1, 11, 150, '24-01-2024', 'niewazny dokument uprawniający do ulgi'),
-    (1, 12, 240, '24-01-2024', 'nieważny dokument uprawniający do przejazdu darmowego'),
-    (1, 11, 240, '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
-    (1, 11, 150, '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
-    (1, 5, 510, '24-01-2024', 'spowodowanie zatrzymania bez uzasadnionej przyczyny'),
-    (1, 6, 150, '24-01-2024', 'nieważny dokument uprawniający do ulgi');
+    (1, 1, '150' , '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
+    (2, 2, '510', '24-01-2024', 'spowodowanie zatrzymania bez uzasadnionej przyczyny'),
+    (3, 4, '240', '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
+    (4, 15, '150', '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
+    (5, 11, '150', '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
+    (6, 12, '240', '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
+    (7, 11, '240', '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
+    (8, 11, '150', '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
+    (9, 5, '510', '24-01-2024', 'spowodowanie zatrzymania bez uzasadnionej przyczyny'),
+    (10, 6, '150', '24-01-2024', 'nieważny dokument uprawniający do ulgi');
 
 INSERT INTO Bilety (idbiletu, typ, ulgowy, zasieg, okres, platnosc, datawydania, czaswydania, cena, idPasażera) VALUES
 (1, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'przelew blik', '2023-06-23', '17:33:44', 169.00, 1),
@@ -625,7 +631,7 @@ INSERT INTO ZajezdnieTramwajowe(nazwa, adres, maxPojazdow, stan)
 VALUES
     ('Podgórze', 'Jana Brożka 3' , 160, 'czynny'),
     ('Nowa Huta', 'Ujastek 12', 220, 'czynny'),
-    ('św. Wawrzyńca', 'św. Wawrzyńca 12', 100, 'wycofany');
+    ('Św. Wawrzyńca', 'św. Wawrzyńca 12', 100, 'wycofany');
 
 INSERT INTO ZajezdnieAutobusowe(nazwa, adres, maxPojazdow, stan)
 VALUES
@@ -708,6 +714,7 @@ VALUES
     ('Rondo Grunwaldzkie 01', True, 'czynny'),
     ('Lipińskiego 04', False, 'czynny');
 
+/*
 INSERT INTO RozkladTramwaje(przystanek, idLinii, godzina)
 VALUES
     ('Czerwone Maki P+R 01', 1, '10:10'),
@@ -741,12 +748,12 @@ VALUES
     ('Rondo Grunwaldzkie 02', 7, '11:21');
 
 --dodac przejazdy
-
+*/
 
 ---------------------------------------------------------------------------------------------------------------
 --wyzwalacze--
 ---------------------------------------------------------------------------------------------------------------
-CREATE OR REPLACE TRIGGER tr_after_rozkladTramwaje AFTER INSERT ON RozkladTramwaje
+/*CREATE OR REPLACE TRIGGER tr_after_rozkladTramwaje AFTER INSERT ON RozkladTramwaje
     FOR EACH ROW EXECUTE FUNCTION wstawidkursu('Tramwaj');
 
 CREATE OR REPLACE TRIGGER tr_after_rozkladAutobusy AFTER INSERT ON RozkladAutobusy
@@ -766,7 +773,7 @@ CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON Przejaz
 
 CREATE OR REPLACE TRIGGER tr_after_Mandaty AFTER INSERT ON Mandaty
     EXECUTE FUNCTION nalozMandat();
-
+*/
 ---------------------------------------------------------------------------------------------------------------
 
 

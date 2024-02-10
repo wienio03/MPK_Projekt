@@ -20,7 +20,7 @@ $$
  LANGUAGE plpython3u;
 --widok pokazujacy laczne roczne zarobki z danego roku z biletow i kart miejskich osobno
 
-CREATE VIEW LaczneZarobki AS
+CREATE OR REPLACE VIEW LaczneZarobki AS
 
 SELECT
     A.Rok AS Rok,
@@ -41,6 +41,20 @@ FULL OUTER JOIN (
     GROUP BY EXTRACT(YEAR FROM dataTransakcji)
 ) AS B
 ON A.Rok = B.Rok;
+
+--widok pokazujacy wszystkich pracownikow podlegajacych danemu pracownikowi (swojemu przelozonemu)
+
+CREATE OR REPLACE VIEW PodwladniPrzelozeni AS
+    SELECT
+        P1.idPracownika AS iddPrzelozonego,
+        P1.imie AS imiePrzelozonego,
+        P1.nazwisko AS nazwiskoPrzelozonego,
+        P2.idPracownika AS idPodwladnego,
+        P2.imie AS imiePodwladnego,
+        P2.nazwisko AS nazwiskoPodwladnego
+    FROM Pracownicy P1
+    JOIN Pracownicy P2 ON P1.idPracownika = P2.idPracownika;
+
 
 --funkcja wypisujaca laczna sume zarobkow z biletow i kart miejskich w ciagu roku (BRUTTO)
 CREATE OR REPLACE FUNCTION DisplayAnnualTotalIncome (year INT)
@@ -64,24 +78,26 @@ END;
 $$;
 
 
-CREATE VIEW PojazdyZastepcze (VARCHAR(10) numerPojazdu) AS
+CREATE OR REPLACE VIEW PojazdyZastepcze AS
     SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, NULL )
     FROM Autobusy A
         JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa;
 ;
-
-CREATE VIEW PojazdySerwisowane AS
+/*
+CREATE OR REPLACE VIEW PojazdySerwisowane AS
     SELECT A.numerPojazdu, A.model, M.producent, MAX(P.data) as OstatnioUżytkowany FROM
         Autobusy A JOIN ModeleAutobusow M ON A.model = M.model JOIN PrzejazdyAutobusowe P ON A.numerpojazdu = P.pojazd
     WHERE A.stan = 'serwisowany'
     GROUP BY A.numerPojazdu, A.model, M.producent
     UNION
     SELECT T.numerPojazdu, T.model, M.producent, MAX(P.data) as OstatnioUżytkowany FROM
-        Tramwaje T JOIN modeletramwajow M ON T.model = M.model JOIN przejazdytramwajowe P ON T.numerpojazdu = P.pojazd
+        Tramwaje T JOIN modeletramwajow M ON T.model = M.model JOIN PrzejazdyTramwajowe P ON T.numerpojazdu = P.pojazd
     WHERE T.stan = 'serwisowany'
     GROUP BY T.numerPojazdu, T.model, M.producent;
+*/
 
-CREATE VIEW WszystkieLinie AS
+
+CREATE OR REPLACE VIEW WszystkieLinie AS
     SELECT * FROM LinieAutobusowe
     UNION
     SELECT * From linietramwajowe
