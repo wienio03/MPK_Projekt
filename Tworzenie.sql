@@ -572,7 +572,7 @@ INSERT INTO KartyMiejskie (idKarty, idKlienta, numerKarty, typ, dataWydania, waz
 (5, 8, 771793, 'senior', '2023-10-23', '2023-10-23', '2024-10-22', 'aktywna', 0.00),
 (6, 1, 328949, 'standardowa', '2023-04-07', '2023-04-07', '2024-04-06', 'aktywna', 100.00),
 (7, 13, 534194, 'senior', '2023-05-15', '2023-05-15', '2024-05-14', 'wygasla', 0.00),
-(8, 7, 379240, 'standardowa', '2023-09-02', '2023-09-02', '2024-09-01', 'aktywna', 0.00),
+(8, 7, 379240, 'standardowa', '2024-09-02', '2023-09-02', '2024-09-01', 'aktywna', 0.00),
 (9, 5, 190893, 'legitymacja studencka/doktorska', '2023-07-15', '2023-07-15', '2024-07-14', 'aktywna', 0.00),
 (10, 7, 547017, 'legitymacja studencka/doktorska', '2023-08-23', '2023-08-23', '2024-08-22', 'wygasla', 0.00),
 (11, 8, 272555, 'legitymacja studencka/doktorska', '2023-06-17', '2023-06-17', '2024-06-16', 'wygasla', 0.00),
