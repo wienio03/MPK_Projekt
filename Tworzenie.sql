@@ -166,12 +166,6 @@ CREATE SEQUENCE sekwencjaLinie AS INT
     START 1
     CACHE 1;
 
---do zmiany dodac trigger wywolujacy procedure zamiast inserta!!!
-CREATE SEQUENCE sekwencjaIDKursu AS INT
-    INCREMENT 1
-    START 1
-    CACHE 1;
-
 CREATE TABLE Pracownicy (
     idPracownika INT PRIMARY KEY,
     imie VARCHAR(40) NOT NULL,
@@ -387,22 +381,22 @@ CREATE TABLE LinieAutobusowe(
 );
 
 CREATE TABLE RozkladTramwaje(
-    przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe,
-    idLinii INT REFERENCES LinieTramwajowe(idLinii),
     idKursu INT DEFAULT 0,
-    godzina TIME,
+    przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe NOT NULL,
+    idLinii INT REFERENCES LinieTramwajowe(idLinii) NOT NULL,
+    godzina TIME NOT NULL,
     PRIMARY KEY (przystanek, idLinii, idKursu)
 );
 
 CREATE TABLE RozkladAutobusy(
-    przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe,
-    idLinii INT REFERENCES LinieAutobusowe(idLinii),
     idKursu INT DEFAULT 0,
-    godzina TIME,
+    przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe NOT NULL,
+    idLinii INT REFERENCES LinieAutobusowe(idLinii) NOT NULL,
+    godzina TIME NOT NULL,
     PRIMARY KEY (przystanek, idLinii, idKursu)
 );
 
-/*
+
 CREATE TABLE PrzejazdyTramwajowe(
     idPrzejazdu INT PRIMARY KEY,
     pojazd VARCHAR(10) REFERENCES Tramwaje(numerPojazdu) ON DELETE SET NULL,
@@ -418,7 +412,7 @@ CREATE TABLE PrzejazdyAutobusowe(
     kierowca VARCHAR REFERENCES KierowcyAutobusow(idLicencji) ON DELETE SET NULL ,
     data DATE NOT NULL
 );
-*/
+
 
 ---------------------------------------------------------------------------------------------------------------
 --wypełnianie bazy danych--
@@ -714,7 +708,7 @@ VALUES
     ('Rondo Grunwaldzkie 01', True, 'czynny'),
     ('Lipińskiego 04', False, 'czynny');
 
-/*
+
 INSERT INTO RozkladTramwaje(przystanek, idLinii, godzina)
 VALUES
     ('Czerwone Maki P+R 01', 1, '10:10'),
@@ -748,22 +742,24 @@ VALUES
     ('Rondo Grunwaldzkie 02', 7, '11:21');
 
 --dodac przejazdy
-*/
+
 
 ---------------------------------------------------------------------------------------------------------------
 --wyzwalacze--
 ---------------------------------------------------------------------------------------------------------------
-/*CREATE OR REPLACE TRIGGER tr_after_rozkladTramwaje AFTER INSERT ON RozkladTramwaje
-    FOR EACH ROW EXECUTE FUNCTION wstawidkursu('Tramwaj');
+
+--wstawiają id kursu
+CREATE OR REPLACE TRIGGER tr_after_rozkladTramwaje AFTER INSERT ON RozkladTramwaje
+    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
 
 CREATE OR REPLACE TRIGGER tr_after_rozkladAutobusy AFTER INSERT ON RozkladAutobusy
-    EXECUTE FUNCTION wstawidkursu('Autobus');
-
+    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
+--sprawdzają czy zajezdnia jest czynna i czy są w niej miejsca
 CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje
-    EXECUTE FUNCTION sprawdzStanZajezdni('Tramwaj');
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
 
 CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
-    EXECUTE FUNCTION sprawdzStanZajezdni('Autobus');
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
 
 CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
@@ -773,7 +769,7 @@ CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON Przejaz
 
 CREATE OR REPLACE TRIGGER tr_after_Mandaty AFTER INSERT ON Mandaty
     EXECUTE FUNCTION nalozMandat();
-*/
+
 ---------------------------------------------------------------------------------------------------------------
 
 

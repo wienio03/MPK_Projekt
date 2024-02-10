@@ -24,16 +24,16 @@ LANGUAGE plpgsql;
 --wstawia id kursu, które są różne dla danej lini na danym przystanku
 CREATE OR REPLACE FUNCTION wstawIdKursu()
     RETURNS TRIGGER AS $$
-        DECLARE rodzaj text = TG_ARGV[0];
+        DECLARE rodzaj text = tg_table_name;
     BEGIN
-        CASE rodzaj WHEN 'tramwaj' THEN
+        CASE rodzaj WHEN 'RozkladTramwaje' THEN
             DECLARE max INT = (SELECT Max(RozkladTramwaje.idkursu) FROM RozkladTramwaje
                 WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
             BEGIN
                 UPDATE RozkladTramwaje SET idKursu = max + 1
                 WHERE idkursu = NEW.idKursu AND przystanek = NEW.przystanek AND idlinii = NEW.idlinii;
             END;
-        WHEN 'autobus' THEN
+        WHEN 'RozkladAutobusy' THEN
             DECLARE max INT = (SELECT Max(RozkladAutobusy.idkursu) FROM RozkladAutobusy
                 WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
             BEGIN
@@ -47,19 +47,19 @@ $$ LANGUAGE plpgsql;
 --sprawdza czy zajezdnia jest czynna i czy są w niej dostępne miejsca
 CREATE OR REPLACE FUNCTION sprawdzStanZajezdni()
     RETURNS TRIGGER AS $$
-        DECLARE rodzaj text = TG_ARGV[0];
+        DECLARE rodzaj text = tg_table_name;
                 miejsca int;
                 STAN varchar;
                 obecne int;
     BEGIN
-        CASE rodzaj WHEN 'Tramwaj' THEN
+        CASE rodzaj WHEN 'Tramwaje' THEN
             miejsca := (SELECT maxPojazdow FROM ZajezdnieTramwajowe
                     WHERE nazwa = NEW.zajezdnia);
             stan := (SELECT stan FROM ZajezdnieTramwajowe
                     WHERE nazwa = NEW.zajezdnia);
             obecne := (SELECT COUNT(*) FROM Tramwaje
                     WHERE zajezdnia = NEW.zajezdnia);
-        WHEN 'Autobus' THEN
+        WHEN 'Autobusy' THEN
             miejsca := (SELECT maxPojazdow FROM ZajezdnieAutobusowe
                     WHERE nazwa = NEW.zajezdnia);
             stan := (SELECT stan FROM zajezdnieautobusowe
@@ -71,6 +71,8 @@ CREATE OR REPLACE FUNCTION sprawdzStanZajezdni()
                 RAISE EXCEPTION 'Nie można dodać pojazdu do zajezdni, ponieważ jest nieczynna';
             ELSEIF obecne >= miejsca THEN
                 RAISE EXCEPTION 'W zajezdni znajduje się już maksymalna dozwolona liczba pojazdów';
+            ELSE
+                RETURN NEW;
             END IF;
     END
 $$ LANGUAGE plpgsql;

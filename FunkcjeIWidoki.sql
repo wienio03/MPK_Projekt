@@ -1,6 +1,5 @@
-
 CREATE LANGUAGE plpython3u;
-
+--zwraca zapis tesktowy przewidywanego czasu podróży
 CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
  RETURNS text
  AS $$
@@ -10,16 +9,15 @@ CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
         'destinations' : adresObecny',
         'origins': adresZajezdni,
         'units': 'metric',
-        'key' : 'TODO'
+        'key' : 'PLACEHOLDER'
     }
     wynik = requests.get(url, params=parametry)
     return(wynik.json()['rows'][0]['elements'][0]['duration']['text'])
-    // zwraca zapis tekstowy przewidywanego czasu podrozy
 $$
-
  LANGUAGE plpython3u;
---widok pokazujacy laczne roczne zarobki z danego roku z biletow i kart miejskich osobno
 
+
+--widok pokazujacy laczne roczne zarobki z danego roku z biletow i kart miejskich osobno
 CREATE OR REPLACE VIEW LaczneZarobki AS
 
 SELECT
@@ -77,13 +75,36 @@ BEGIN
 END;
 $$;
 
+--zwraca lokalizację pojazdu, powinna zwracać dane z systemu geolokalizacji pojazdu,
+-- ale w ramach placeholdera zwraca przystanek na którym powinien być pojazd w tym momencie
+CREATE OR REPLACE FUNCTION LokalizacjaPojazdu(numerPojazdu VARCHAR(10))
+RETURNS TEXT
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    --RETURN (SELECT R.
+END;
+$$;
 
-CREATE OR REPLACE VIEW PojazdyZastepcze AS
-    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, NULL )
+--wyświtla potencjalnie pojazdy zastępcze w wypadku awarii pojazdu na trasie
+CREATE OR REPLACE FUNCTION PojazdyZastepcze(numerZepsutegoPojazdu VARCHAR(10))
+RETURNS TABLE (numerPojazdu VARCHAR(10), zajezdnia VARCHAR(50), czasPodrozy TEXT)
+LANGUAGE plpgsql
+AS
+$$
+DECLARE
+    współrzędneMiejscaAwarii VARCHAR(50);
+BEGIN
+    współrzędneMiejscaAwarii = LokalizacjaPojazdu(numerZepsutegoPojazdu);
+    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, współrzędneMiejscaAwarii)
     FROM Autobusy A
-        JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa;
-;
-/*
+        JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa
+    WHERE A.stan = 'czynny';
+END;
+$$;
+
+--wyświetla serwisowane obecnie tramwaje i autobusy
 CREATE OR REPLACE VIEW PojazdySerwisowane AS
     SELECT A.numerPojazdu, A.model, M.producent, MAX(P.data) as OstatnioUżytkowany FROM
         Autobusy A JOIN ModeleAutobusow M ON A.model = M.model JOIN PrzejazdyAutobusowe P ON A.numerpojazdu = P.pojazd
@@ -94,9 +115,9 @@ CREATE OR REPLACE VIEW PojazdySerwisowane AS
         Tramwaje T JOIN modeletramwajow M ON T.model = M.model JOIN PrzejazdyTramwajowe P ON T.numerpojazdu = P.pojazd
     WHERE T.stan = 'serwisowany'
     GROUP BY T.numerPojazdu, T.model, M.producent;
-*/
 
 
+--wyświetla wszystkie linie, przydatne by uzyskać idLinii, które służy do rozróżnienia dwóch linii o tym samym numerze, ale mających inną pętlę końcową/startową
 CREATE OR REPLACE VIEW WszystkieLinie AS
     SELECT * FROM LinieAutobusowe
     UNION
