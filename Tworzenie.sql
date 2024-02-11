@@ -315,53 +315,71 @@ DROP TABLE IF EXISTS LinieTramwajowe CASCADE;
 CREATE TABLE LinieTramwajowe(
     idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
     numer INT UNIQUE,
-    poczatek VARCHAR(50) REFERENCES PetleTramwajowe,
-    koniec VARCHAR(50) REFERENCES PetleTramwajowe,
+    poczatek VARCHAR(50) REFERENCES PetleTramwajowe ON DELETE SET NULL,
+    koniec VARCHAR(50) REFERENCES PetleTramwajowe ON DELETE SET NULL,
     typ typLinii NOT NULL
 );
 
 DROP TABLE IF EXISTS LinieAutobusowe CASCADE;
 CREATE TABLE LinieAutobusowe(
     idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
-    numer INT UNIQUE,
-    poczatek VARCHAR(50) REFERENCES PetleAutobusowe,
-    koniec VARCHAR(50) REFERENCES PetleAutobusowe,
+    numer INT,
+    poczatek VARCHAR(50) REFERENCES PetleAutobusowe ON DELETE SET NULL,
+    koniec VARCHAR(50) REFERENCES PetleAutobusowe ON DELETE SET NULL,
     typ typLinii NOT NULL
+);
+
+DROP TABLE IF EXISTS PrzystankiNaLiniiTramwajowej CASCADE;
+CREATE TABLE PrzystankiNaLiniiTramwajowej(
+    idLinii INT REFERENCES LinieTramwajowe ON DELETE CASCADE,
+    przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe ON DELETE CASCADE,
+    liczbaPorządkowa INT NOT NULL,
+    PRIMARY KEY(idLinii, przystanek)
+);
+
+DROP TABLE IF EXISTS PrzystankiNaLiniiAutobusowej CASCADE;
+CREATE TABLE PrzystankiNaLiniiAutobusowej(
+    idLinii INT REFERENCES LinieAutobusowe ON DELETE CASCADE,
+    przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe ON DELETE CASCADE,
+    liczbaPorządkowa INT NOT NULL,
+    PRIMARY KEY(idLinii, przystanek)
 );
 
 DROP TABLE IF EXISTS RozkladTramwaje CASCADE;
 CREATE TABLE RozkladTramwaje(
-    idKursu INT DEFAULT 0,
-    przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe NOT NULL,
-    idLinii INT REFERENCES LinieTramwajowe(idLinii) NOT NULL,
-    godzina TIME NOT NULL,
-    PRIMARY KEY (przystanek, idLinii, idKursu)
+    przystanek VARCHAR(50),
+    idLinii INT,
+    godzina TIME,
+    PRIMARY KEY (przystanek, idLinii, godzina),
+    FOREIGN KEY(idLinii, przystanek) REFERENCES PrzystankiNaLiniiTramwajowej ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS RozkladAutobusy CASCADE;
 CREATE TABLE RozkladAutobusy(
-    idKursu INT DEFAULT 0,
-    przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe NOT NULL,
-    idLinii INT REFERENCES LinieAutobusowe(idLinii) NOT NULL,
-    godzina TIME NOT NULL,
-    PRIMARY KEY (przystanek, idLinii, idKursu)
+    przystanek VARCHAR(50),
+    idLinii INT,
+    godzina TIME,
+    PRIMARY KEY (przystanek, idLinii, godzina),
+    FOREIGN KEY(idLinii, przystanek) REFERENCES PrzystankiNaLiniiAutobusowej ON DELETE CASCADE
 );
 
 DROP TABLE IF EXISTS PrzejazdyTramwajowe CASCADE;
 CREATE TABLE PrzejazdyTramwajowe(
     idPrzejazdu INT PRIMARY KEY DEFAULT nextval('sekwencjaPrzejazdy'),
+    idLinii INT REFERENCES LinieTramwajowe ON DELETE CASCADE,
     pojazd VARCHAR(10) REFERENCES Tramwaje(numerPojazdu) ON DELETE SET NULL,
-    idKursu INT REFERENCES  RozkladTramwaje(idKursu)  ON DELETE CASCADE,
     kierowca VARCHAR REFERENCES KierowcyTramwajow(idLicencji) ON DELETE SET NULL,
+    godzinaRozpoczęcia TIME NOT NULL,
     data DATE NOT NULL
 );
 
 DROP TABLE IF EXISTS PrzejazdyAutobusowe CASCADE;
 CREATE TABLE PrzejazdyAutobusowe(
     idPrzejazdu INT PRIMARY KEY DEFAULT nextval('sekwencjaPrzejazdy'),
-    pojazd VARCHAR(10) REFERENCES Autobusy(numerPojazdu) ON DELETE SET NULL ,
-    idKursu INT REFERENCES RozkladAutobusy(idKursu) ON DELETE CASCADE,
-    kierowca VARCHAR REFERENCES KierowcyAutobusow(idLicencji) ON DELETE SET NULL ,
+    idLinii INT REFERENCES LinieAutobusowe ON DELETE CASCADE,
+    pojazd VARCHAR(10) REFERENCES Autobusy(numerPojazdu) ON DELETE SET NULL,
+    kierowca VARCHAR REFERENCES KierowcyAutobusow(idLicencji) ON DELETE SET NULL,
+    godzinaRozpoczęcia TIME NOT NULL,
     data DATE NOT NULL
 );
 
@@ -369,28 +387,24 @@ CREATE TABLE PrzejazdyAutobusowe(
 --wyzwalacze--
 ---------------------------------------------------------------------------------------------------------------
 
---wstawiają id kursu
-CREATE OR REPLACE TRIGGER tr_before_rozkladTramwaje BEFORE INSERT ON RozkladTramwaje
-    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
-
-CREATE OR REPLACE TRIGGER tr_before_rozkladAutobusy BEFORE INSERT ON RozkladAutobusy
-    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
-
 --sprawdzają czy zajezdnia jest czynna i czy są w niej miejsca
-CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje
+CREATE OR REPLACE TRIGGER tr_before_insert_tramwaje BEFORE INSERT ON Tramwaje
     FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
 
-CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
+CREATE OR REPLACE TRIGGER tr_before_insert_autobusy BEFORE INSERT ON Autobusy
     FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
 
-CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
+CREATE OR REPLACE TRIGGER tr_before_update_tramwaje BEFORE UPDATE ON Tramwaje
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_update_autobusy BEFORE UPDATE ON Autobusy
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
 
-CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
+CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
-
-CREATE OR REPLACE TRIGGER tr_after_Mandaty AFTER INSERT ON Mandaty
-    EXECUTE FUNCTION nalozMandat();
 
 ---------------------------------------------------------------------------------------------------------------
 --wypełnianie bazy danych--

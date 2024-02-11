@@ -83,7 +83,8 @@ LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    --RETURN (SELECT R.
+    RETURN (SELECT R.przystanek FROM RozkladAutobusy R JOIN PrzejazdyAutobusowe P ON P.idlinii = R.idlinii
+        WHERE CURRENT_DATE = P.data AND numerPojazdu = P.pojazd AND CURRENT_TIME - P.godzinarozpoczęcia = R.godzina);
 END;
 $$;
 

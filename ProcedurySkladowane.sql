@@ -1,54 +1,10 @@
---naklada mandat na danego pasazera jesli pasażer podlega pod mandat
-CREATE OR REPLACE FUNCTION nalozMandat()
-    RETURNS TRIGGER AS $$
-        BEGIN
-            UPDATE Pasażerowie
-            SET SumaMandatów = SumaMandatów + NEW.kwota
-            WHERE idPasażera = NEW.idPasażera;
-        END
-    $$
-LANGUAGE plpgsql;
-
-
---robi to samo co nalozMandat, ale nie naklada tylko umozliwia aktualizacje kolumny SumaMandatów danego pasażera, który opłacił bilet
-CREATE OR REPLACE FUNCTION zaplacMandat()
-    RETURNS TRIGGER AS $$
-        BEGIN
-            UPDATE Pasażerowie
-            SET SumaMandatów = SumaMandatów - OLD.kwota
-            WHERE idPasażera = OLD.idPasażera;
-        END
-    $$
-LANGUAGE plpgsql;
-
---wstawia id kursu, które są różne dla danej lini na danym przystanku
-CREATE OR REPLACE FUNCTION wstawIdKursu()
-    RETURNS TRIGGER AS $$
-        DECLARE rodzaj text = tg_table_name;
-    BEGIN
-        CASE rodzaj WHEN 'RozkladTramwaje' THEN
-            DECLARE max INT = (SELECT Max(RozkladTramwaje.idkursu) FROM RozkladTramwaje
-                WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
-            BEGIN
-                UPDATE NEW SET idKursu = max + 1
-                WHERE TRUE;
-            END;
-        ELSE
-            DECLARE max INT = (SELECT Max(RozkladAutobusy.idkursu) FROM RozkladAutobusy
-                WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
-            BEGIN
-                UPDATE NEW SET idKursu = max + 1
-                WHERE  True;
-            END;
-        END CASE;
-        RETURN NEW;
-    END
-$$ LANGUAGE plpgsql;
-
 --sprawdza czy zajezdnia jest czynna i czy są w niej dostępne miejsca
 CREATE OR REPLACE FUNCTION sprawdzStanZajezdni()
-    RETURNS TRIGGER AS $$
-        DECLARE rodzaj text = tg_table_name;
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+    DECLARE rodzaj text = tg_table_name;
                 miejsca int;
                 stanZajezdni varchar;
                 obecne int;
@@ -78,17 +34,54 @@ CREATE OR REPLACE FUNCTION sprawdzStanZajezdni()
                 RETURN NEW;
             END IF;
     END
-$$ LANGUAGE plpgsql;
+$$;
+
+CREATE OR REPLACE PROCEDURE UsunPrzejazdySprzed90Dni()
+LANGUAGE plpgsql AS
+$$
+BEGIN
+    START TRANSACTION;
+        DELETE FROM PrzejazdyTramwajowe
+        WHERE CURRENT_DATE - przejazdytramwajowe.data > 90;
+    COMMIT;
+
+    START TRANSACTION;
+        DELETE FROM przejazdyautobusowe
+        WHERE CURRENT_DATE - przejazdyautobusowe.data > 90;
+    COMMIT;
+END;
+$$;
+
 
 --sprawdza czy kierowca nie jest na urlopie, czy nie jest przypisany do innego przejazdu w tym samym czasie,
 --czy pojazd jest czynny oraz czy pojazd nie jest przypisany do kursu w tym samym czasie
-/*
+
+
+
+
 CREATE OR REPLACE FUNCTION sprawdzDostepnoscKierowcyIPojazdu()
 RETURNS TRIGGER AS $$
+DECLARE
+    urlop bool = CASE tg_table_name
+        WHEN 'PrzejazdyAutobusowe' THEN EXISTS (SELECT Z.idzwolnienia FROM zwolnienia Z JOIN kierowcyautobusow K ON K.idpracownika = Z.idpracownika
+            WHERE NEW.kierowca = K.idlicencji AND CURRENT_DATE BETWEEN Z.datarozpoczecia AND Z.datazakonczenia)
+        ELSE EXISTS (SELECT Z.idzwolnienia FROM zwolnienia Z JOIN KierowcyTramwajow K ON K.idpracownika = Z.idpracownika
+            WHERE NEW.kierowca = K.idlicencji AND CURRENT_DATE BETWEEN Z.datarozpoczecia AND Z.datazakonczenia)
+        END;
+    stan stanpojazdu = CASE tg_table_name
+        WHEN 'PrzejazdyAutobusowe' THEN (SELECT stan FROM autobusy WHERE numerpojazdu = NEW.pojazd)
+        ELSE (SELECT stan FROM tramwaje WHERE numerpojazdu = NEW.pojazd)
+        END;
+    czyKierowcaDostepny = (
 
 BEGIN
+    IF urlop = TRUE THEN
+        RAISE WARNING 'Kierowca przypisany do kursu % % % jest na urlopie.', NEW.linia, NEW.data, NEW.godzina;
+        RETURN NULL;
+    ELSEIF stan <> 'czynny' THEN
+        RAISE WARNING 'Autobus przypisany do kursu % % % nie jest gotowy do użytku.', NEW.linia, NEW.data, NEW.godzina;
+        RETURN NULL;
+end if;
 
 END
 $$
-
- */
