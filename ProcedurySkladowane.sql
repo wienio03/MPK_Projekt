@@ -1,25 +1,24 @@
---naklada mandat na danego pasazera jesli pasażer podlega pod mandat
-CREATE OR REPLACE FUNCTION nalozMandat()
+CREATE OR REPLACE FUNCTION dokonajTransakcji()
     RETURNS TRIGGER AS $$
-        BEGIN
-            UPDATE Pasażerowie
-            SET SumaMandatów = SumaMandatów + NEW.kwota
-            WHERE idPasażera = NEW.idPasażera;
-        END
-    $$
-LANGUAGE plpgsql;
+        DECLARE obecneSaldo INT;
+    BEGIN
+        IF NEW.platnosc = 'karta miejska' THEN
+            obecneSaldo = (SELECT KM.saldo FROM KartyMiejskie KM
+                           WHERE KM.idKlienta = NEW.idKlienta);
 
+            IF obecneSaldo < NEW.cena THEN
+                RAISE EXCEPTION 'Zbyt mało na koncie! Wybierz inną metode płatności';
+            END IF;
 
---robi to samo co nalozMandat, ale nie naklada tylko umozliwia aktualizacje kolumny SumaMandatów danego pasażera, który opłacił bilet
-CREATE OR REPLACE FUNCTION zaplacMandat()
-    RETURNS TRIGGER AS $$
-        BEGIN
-            UPDATE Pasażerowie
-            SET SumaMandatów = SumaMandatów - OLD.kwota
-            WHERE idPasażera = OLD.idPasażera;
-        END
-    $$
-LANGUAGE plpgsql;
+            UPDATE KartyMiejskie
+            SET saldo = obecneSaldo - NEW.cena
+            WHERE KartyMiejskie.idKlienta = NEW.idKlienta;
+
+        ELSE
+            RAISE WARNING 'Płatność dokonana poprzez kasownik';
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
 
 --wstawia id kursu, które są różne dla danej lini na danym przystanku
 CREATE OR REPLACE FUNCTION wstawIdKursu()

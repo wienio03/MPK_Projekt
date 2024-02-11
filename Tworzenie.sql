@@ -40,7 +40,7 @@ CREATE TYPE okresBiletu AS ENUM ('20-minutowy', '60-minutowy',
     );
 
 DROP TYPE IF EXISTS metodaPlatnosci CASCADE;
-CREATE TYPE metodaPlatnosci AS ENUM('karta', 'gotowka', 'przelew blik', 'aplikacja');
+CREATE TYPE metodaPlatnosci AS ENUM('karta', 'gotowka', 'przelew blik', 'karta miejska');
 
 DROP TYPE IF EXISTS statusKlienta CASCADE;
 CREATE TYPE statusKlienta AS ENUM ('aktywny', 'nieaktywny', 'zablokowany');
@@ -145,13 +145,6 @@ CREATE TABLE Zwolnienia (
 );
 
 DROP TABLE IF EXISTS Pasażerowie CASCADE;
-CREATE TABLE Pasażerowie (
-    idPasażera INT PRIMARY KEY,
-    Imie VARCHAR(50) NOT NULL,
-    Nazwisko VARCHAR(50) NOT NULL,
-    Adres VARCHAR(256) NOT NULL, -- DODAC WIDOK MANDATY
-    SumaMandatów INT NOT NULL DEFAULT 0
-);
 
 DROP TABLE IF EXISTS Mandaty;
 CREATE TABLE Mandaty (
@@ -161,21 +154,6 @@ CREATE TABLE Mandaty (
     dataWystawienia DATE NOT NULL,
     opis opisMandatu NOT NULL
 );
-
-DROP TABLE IF EXISTS Bilety CASCADE;
-CREATE TABLE Bilety (
-    idBiletu INT PRIMARY KEY ,
-    typ typBiletu NOT NULL,
-    ulgowy czyUlgowy NOT NULL,
-    zasieg zasiegBiletu NOT NULL,
-    okres okresBiletu NOT NULL,
-    platnosc metodaPlatnosci NOT NULL,
-    dataWydania DATE NOT NULL,
-    czasWydania TIME NOT NULL,
-    cena MONEY NOT NULL,
-    idPasażera INT REFERENCES Pasażerowie(idPasażera) ON DELETE CASCADE
-);
-
 DROP TABLE IF EXISTS Klienci CASCADE;
 CREATE TABLE Klienci (
     idKlienta INT PRIMARY KEY ,
@@ -204,6 +182,22 @@ CREATE TABLE KartyMiejskie (
     saldo MONEY DEFAULT 0.00
 );
 
+
+DROP TABLE IF EXISTS Bilety CASCADE;
+CREATE TABLE Bilety (
+    idBiletu INT PRIMARY KEY ,
+    typ typBiletu NOT NULL,
+    ulgowy czyUlgowy NOT NULL,
+    zasieg zasiegBiletu NOT NULL,
+    okres okresBiletu NOT NULL,
+    idPojazdu VARCHAR(10) NOT NULL,
+    platnosc metodaPlatnosci NOT NULL,
+    dataWydania DATE NOT NULL,
+    czasWydania TIME NOT NULL,
+    cena MONEY NOT NULL,
+    idKlienta INT DEFAULT NULL REFERENCES Klienci(idKlienta) ON DELETE CASCADE
+);
+
 DROP TABLE IF EXISTS TransakcjeKartyMiejskie;
 CREATE TABLE TransakcjeKartyMiejskie (
     idTransakcji INT PRIMARY KEY,
@@ -212,6 +206,7 @@ CREATE TABLE TransakcjeKartyMiejskie (
     ulgowy czyUlgowy DEFAULT NULL,
     zasieg zasiegBiletu DEFAULT NULL,
     okres okresBiletu DEFAULT NULL,
+    numerPojazdu VARCHAR(10) DEFAULT NULL,
     rodzaj typTransakcji NOT NULL,
     kwota MONEY NOT NULL,
     dataTransakcji DATE NOT NULL,
@@ -389,8 +384,8 @@ CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON Przejaz
 CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
 
-CREATE OR REPLACE TRIGGER tr_after_Mandaty AFTER INSERT ON Mandaty
-    EXECUTE FUNCTION nalozMandat();
+CREATE OR REPLACE TRIGGER tr_after_Bilety AFTER INSERT ON Bilety
+    EXECUTE FUNCTION dokonajTransakcji();
 
 ---------------------------------------------------------------------------------------------------------------
 --wypełnianie bazy danych--
@@ -474,27 +469,6 @@ INSERT INTO Zwolnienia (idZwolnienia, idPracownika, dataRozpoczecia, dataZakoncz
   (19, 7, '2020-08-08', '2020-09-16', 'urlop bezpłatny', 'zakończone'),
   (20, 6, '2022-09-11', '2022-10-23', 'urlop bezpłatny', 'zakończone');
 
-INSERT INTO Pasażerowie (idPasażera, Imie, Nazwisko, Adres) VALUES
-(1, 'Jan', 'Nowak', 'ul. Floriańska 17, Kraków'),
-(2, 'Anna', 'Kowalska', 'ul. Grodzka 15, Kraków'),
-(3, 'Piotr', 'Wiśniewski', 'ul. Szeroka 2, Kraków'),
-(4, 'Katarzyna', 'Wójcik', 'ul. Długa 1, Kraków'),
-(5, 'Marcin', 'Kowalczyk', 'ul. Krótka 45, Kraków'),
-(6, 'Agnieszka', 'Kamińska', 'ul. Lubicz 56, Kraków'),
-(7, 'Tomasz', 'Lewandowski', 'ul. Basztowa 22, Kraków'),
-(8, 'Barbara', 'Zielińska', 'ul. Garbarska 15, Kraków'),
-(9, 'Krzysztof', 'Szymański', 'ul. Szewska 34, Kraków'),
-(10, 'Małgorzata', 'Woźniak', 'ul. Bracka 15, Kraków'),
-(11, 'Andrzej', 'Dąbrowski', 'ul. Poselska 22, Kraków'),
-(12, 'Alicja', 'Kozłowska', 'ul. Kanonicza 2, Kraków'),
-(13, 'Michał', 'Jankowski', 'ul. Św. Anny 87, Kraków'),
-(14, 'Dorota', 'Mazur', 'ul. Piłsudskiego 66, Kraków'),
-(15, 'Jakub', 'Wojciechowski', 'ul. Dietla 60, Kraków'),
-(16, 'Ewa', 'Kwiatkowska', 'ul. Starowiślna 24, Kraków'),
-(17, 'Robert', 'Kaczmarek', 'ul. Dunajewskiego 13, Kraków'),
-(18, 'Marta', 'Piotrowska', 'ul. Rakowicka 11, Kraków'),
-(19, 'Paweł', 'Grabowski', 'ul. Podwale 14, Kraków'),
-(20, 'Magdalena', 'Nowakowska', 'ul. Stolarska 28, Kraków');
 
 INSERT INTO Mandaty (idMandatu, idPasażera, kwota, dataWystawienia, opis) VALUES
     (1, 1, '150' , '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
@@ -508,22 +482,22 @@ INSERT INTO Mandaty (idMandatu, idPasażera, kwota, dataWystawienia, opis) VALUE
     (9, 5, '510', '24-01-2024', 'spowodowanie zatrzymania bez uzasadnionej przyczyny'),
     (10, 6, '150', '24-01-2024', 'nieważny dokument uprawniający do ulgi');
 
-INSERT INTO Bilety (idbiletu, typ, ulgowy, zasieg, okres, platnosc, datawydania, czaswydania, cena, idPasażera) VALUES
-(1, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'przelew blik', '2023-06-23', '17:33:44', 169.00, 1),
-(2, 'firmowy', 'nie', 'I+II', 'miesięczny', 'aplikacja', '2023-04-30', '04:06:44', 144.00, 2),
-(3, 'metropolitalny', 'tak', 'II+III', 'miesięczny', 'karta', '2023-06-08', '10:04:37', 84.50, 3),
-(4, 'mieszkanca', 'nie', 'I', 'miesięczny', 'przelew blik', '2023-09-13', '04:34:58', 80.00, 4),
-(5, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'aplikacja', '2023-09-20', '04:39:26', 169.00, 5),
-(6, 'do kasowania', 'tak', 'I+II+III', '48-godzinny', 'aplikacja', '2023-12-19', '04:51:13', 17.50, 6),
-(7, 'do kasowania', 'tak', 'I+II+III', '48-godzinny', 'aplikacja', '2023-08-26', '19:27:03', 17.50, 7),
-(8, 'bezrobotny', 'nie', 'I+II', 'miesięczny', 'karta', '2023-04-16', '05:09:04', 50.00, 8),
-(9, 'bezrobotny', 'nie', 'I+II+III', 'miesięczny', 'aplikacja', '2023-02-02', '02:38:55', 70.00, 9),
-(10, 'socjalny', 'nie', 'I', 'miesięczny', 'karta', '2023-03-08', '14:34:17', 30.00, 10),
-(11, 'bezrobotny', 'nie', 'I+II+III', 'miesięczny', 'aplikacja', '2023-03-13', '08:11:36', 70.00, 11),
-(12, 'socjalny', 'nie', 'I+II+III', 'miesięczny', 'karta', '2023-08-07', '01:53:11', 70.00, 12),
-(13, 'mieszkanca', 'nie', 'I', 'miesięczny 1 linia', 'aplikacja', '2023-05-23', '16:48:42', 80.00, 13),
-(14, 'mieszkanca', 'tak', 'I', 'miesięczny', 'gotowka', '2023-03-20', '02:26:25', 40.00, 14),
-(15, 'socjalny', 'nie', 'I+II', 'miesięczny', 'gotowka', '2023-12-27', '05:30:36', 50.00, 15);
+INSERT INTO Bilety (idBiletu, typ, ulgowy, zasieg, okres, idPojazdu, platnosc, datawydania, czaswydania, cena, idKlienta) VALUES
+(1, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'KJ502', 'przelew blik', '2023-06-23', '17:33:44', 169.00, 1),
+(2, 'firmowy', 'nie', 'I+II', 'miesięczny', 'HK543', 'przelew blik', '2023-04-30', '04:06:44', 144.00, 2),
+(3, 'metropolitalny', 'tak', 'II+III', 'miesięczny', 'RK423', 'karta miejska', '2023-06-08', '10:04:37', 84.50, 3),
+(4, 'mieszkanca', 'nie', 'I', 'miesięczny', 'ER213', 'przelew blik', '2023-09-13', '04:34:58', 80.00, 4),
+(5, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'EL113', 'przelew blik', '2023-09-20', '04:39:26', 169.00, 5),
+(6, 'do kasowania', 'tak', 'I+II+III', '48-godzinny', 'ER455', 'karta miejska', '2023-12-19', '04:51:13', 17.50, 6),
+(7, 'do kasowania', 'tak', 'I+II+III', '48-godzinny', 'RY201','przelew blik', '2023-08-26', '19:27:03', 17.50, 7),
+(8, 'bezrobotny', 'nie', 'I+II', 'miesięczny', 'DR501','karta miejska','2023-04-16', '05:09:04', 50.00, 8),
+(9, 'bezrobotny', 'nie', 'I+II+III', 'miesięczny', 'DR501',  'karta miejska', '2023-02-02', '02:38:55', 70.00, 9),
+(10, 'socjalny', 'nie', 'I', 'miesięczny','DR506' , 'karta', '2023-03-08', '14:34:17', 30.00, 10),
+(11, 'bezrobotny', 'nie', 'I+II+III', 'miesięczny', 'HY537', 'karta miejska', '2023-03-13', '08:11:36', 70.00, 11),
+(12, 'socjalny', 'nie', 'I+II+III', 'miesięczny', 'DR501' ,'karta', '2023-08-07', '01:53:11', 70.00, 12),
+(13, 'mieszkanca', 'nie', 'I', 'miesięczny 1 linia', 'DR541', 'aplikacja', '2023-05-23', '16:48:42', 80.00, 13),
+(14, 'mieszkanca', 'tak', 'I', 'miesięczny', 'HY537' ,'gotowka', '2023-03-20', '02:26:25', 40.00, 14),
+(15, 'socjalny', 'nie', 'I+II', 'miesięczny','HY537' ,'gotowka', '2023-12-27', '05:30:36', 50.00, 15);
 
 INSERT INTO Klienci (idKlienta, imie, nazwisko, dataUrodzenia, email, numerTelefonu, adresZamieszkania, dataRejestracji, stanKlienta, znizka) VALUES
 (1, 'Piotr', 'Wiśniewski', '1997-03-28', 'piotr.wiśniewski@example.com', '702375572', 'ul. Słoneczna 98, Kraków', '2023-08-16', 'aktywny', 'obowiazuje'),
@@ -536,28 +510,28 @@ INSERT INTO Klienci (idKlienta, imie, nazwisko, dataUrodzenia, email, numerTelef
 (8, 'Piotr', 'Lewandowski', '1950-11-10', 'piotr.lewandowski@example.com', '330114129', 'ul. Leśna 92, Kraków', '2023-04-10', 'nieaktywny', 'obowiazuje'),
 (9, 'Agnieszka', 'Nowak', '2003-12-29', 'agnieszka.nowak@example.com', '997510367', 'ul. Krótka 73, Kraków', '2023-02-22', 'zablokowany', 'nieobowiazuje'),
 (10, 'Monika', 'Dąbrowski', '2002-05-16', 'monika.dąbrowski@mail.com', '258540683', 'ul. Krótka 88, Kraków', '2023-10-27', 'aktywny', 'obowiazuje'),
-(11, 'Jan', 'Nowak', '2023-06-24', 'jan.nowak@example.com', '902379093', 'ul. Słoneczna 18, Kraków', '2023-06-24', 'zablokowany', 'nieobowiazuje'),
-(12, 'Monika', 'Wiśniewski', '2023-09-17', 'monika.wiśniewski@mail.com', '661229926', 'ul. Długa 17, Kraków', '2023-10-19', 'aktywny', 'obowiazuje'),
+(11, 'Jan', 'Nowak', '2002-06-24', 'jan.nowak@example.com', '902379093', 'ul. Słoneczna 18, Kraków', '2023-06-24', 'zablokowany', 'nieobowiazuje'),
+(12, 'Monika', 'Wiśniewski', '2002-09-17', 'monika.wiśniewski@mail.com', '661229926', 'ul. Długa 17, Kraków', '2023-10-19', 'aktywny', 'obowiazuje'),
 (13, 'Agnieszka', 'Wójcik', '1955-11-03', 'agnieszka.wójcik@mail.com', '894493301', 'ul. Krótka 11, Kraków', '2023-07-13', 'nieaktywny', 'nieobowiazuje'),
 (14, 'Monika', 'Kowalski', '2001-10-11', 'monika.kowalski@mail.com', '323359304', 'ul. Słoneczna 92, Kraków', '2023-11-05', 'zablokowany', 'nieobowiazuje'),
 (15, 'Agnieszka', 'Nowak', '2000-01-05', 'agnieszka.nowak@mail.com', '320861912', 'ul. Klonowa 38, Kraków', '2023-10-07', 'nieaktywny', 'obowiazuje');
 
 INSERT INTO KartyMiejskie (idKarty, idKlienta, numerKarty, typ, dataWydania, waznaOd, waznaDo, stanKarty, saldo) VALUES
-(1, 15, 474541, 'legitymacja studencka/doktorska', '2023-12-19', '2023-12-19', '2024-12-18', 'wygasla', 0.00),
-(2, 10, 973590, 'legitymacja studencka/doktorska', '2023-05-03', '2023-05-03', '2024-05-02', 'zawieszona', 0.00),
-(3, 3, 561385, 'senior', '2023-06-07', '2023-06-07', '2024-06-06', 'aktywna', 0.00),
-(4, 14, 124824, 'standardowa', '2023-06-18', '2023-06-18', '2024-06-17', 'zawieszona', 0.00),
-(5, 8, 771793, 'senior', '2023-10-23', '2023-10-23', '2024-10-22', 'aktywna', 0.00),
-(6, 1, 328949, 'standardowa', '2023-04-07', '2023-04-07', '2024-04-06', 'aktywna', 100.00),
-(7, 13, 534194, 'senior', '2023-05-15', '2023-05-15', '2024-05-14', 'wygasla', 0.00),
-(8, 7, 379240, 'standardowa', '2024-09-02', '2023-09-02', '2024-09-01', 'aktywna', 0.00),
-(9, 5, 190893, 'legitymacja studencka/doktorska', '2023-07-15', '2023-07-15', '2024-07-14', 'aktywna', 0.00),
-(10, 7, 547017, 'legitymacja studencka/doktorska', '2023-08-23', '2023-08-23', '2024-08-22', 'wygasla', 0.00),
-(11, 8, 272555, 'legitymacja studencka/doktorska', '2023-06-17', '2023-06-17', '2024-06-16', 'wygasla', 0.00),
-(12, 1, 217437, 'standardowa', '2023-10-29', '2023-10-29', '2024-10-28', 'zawieszona', 96.50),
-(13, 1, 758550, 'standardowa', '2023-08-18', '2023-08-18', '2024-08-17', 'aktywna', 150.55),
-(14, 12, 782074, 'standardowa', '2023-09-22', '2023-09-22', '2024-09-21', 'wygasla', 50.55),
-(15, 3, 641817, 'standardowa', '2023-04-24', '2023-04-24', '2024-04-23', 'zawieszona', 2.00);
+(1, 1, 474541, 'legitymacja studencka/doktorska', '2023-12-19', '2023-12-19', '2024-12-18', 'wygasla', 200.00),
+(2, 2, 973590, 'legitymacja studencka/doktorska', '2023-05-03', '2023-05-03', '2024-05-02', 'zawieszona', 200.00),
+(3, 3, 561385, 'senior', '2023-06-07', '2023-06-07', '2024-06-06', 'aktywna', 200.00),
+(4, 4, 124824, 'standardowa', '2023-06-18', '2023-06-18', '2024-06-17', 'zawieszona', 200.00),
+(5, 8, 771793, 'senior', '2023-10-23', '2023-10-23', '2024-10-22', 'aktywna', 200.00),
+(6, 5, 328949, 'standardowa', '2023-04-07', '2023-04-07', '2024-04-06', 'aktywna', 100.00),
+(7, 13, 534194, 'senior', '2023-05-15', '2023-05-15', '2024-05-14', 'wygasla', 150.00),
+(8, 6, 379240, 'standardowa', '2024-09-02', '2023-09-02', '2024-09-01', 'aktywna', 140.00),
+(9, 7, 190893, 'legitymacja studencka/doktorska', '2023-07-15', '2023-07-15', '2024-07-14', 'aktywna', 140.00),
+(10, 10, 547017, 'legitymacja studencka/doktorska', '2023-08-23', '2023-08-23', '2024-08-22', 'wygasla', 150.00),
+(11, 11, 272555, 'legitymacja studencka/doktorska', '2023-06-17', '2023-06-17', '2024-06-16', 'wygasla', 250.00),
+(12, 12, 217437, 'standardowa', '2023-10-29', '2023-10-29', '2024-10-28', 'zawieszona', 500.50),
+(13, 9, 758550, 'standardowa', '2023-08-18', '2023-08-18', '2024-08-17', 'aktywna', 150.55),
+(14, 14, 782074, 'standardowa', '2023-09-22', '2023-09-22', '2024-09-21', 'wygasla', 50.55),
+(15, 15, 641817, 'standardowa', '2023-04-24', '2023-04-24', '2024-04-23', 'zawieszona', 2.00);
 
 
 INSERT INTO TransakcjeKartyMiejskie (idTransakcji, idKarty, typ, ulgowy, zasieg, okres, rodzaj, kwota, dataTransakcji, godzinaTransakcji) VALUES

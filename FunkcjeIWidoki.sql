@@ -121,6 +121,80 @@ CREATE OR REPLACE VIEW PojazdySerwisowane AS
 CREATE OR REPLACE VIEW WszystkieLinie AS
     SELECT * FROM LinieAutobusowe
     UNION
-    SELECT * From linietramwajowe
+    SELECT * From linietramwajowe;
 
+--sprawdza czy bilet jest ważny
+CREATE OR REPLACE FUNCTION czyWazny(idSprawdzane INT)
+RETURNS BOOLEAN
+AS
+$$
+DECLARE
+    czasTrwania VARCHAR(256);
+    obecnyCzas TIME;
+    obecnaData DATE;
+    dataZakupu DATE;
+    czasZakupu TIME;
+BEGIN
+    obecnaData = CURRENT_DATE;
+    obecnyCzas = CURRENT_TIME;
+    czasTrwania = (
+        SELECT B.okres FROM Bilety B
+        WHERE B.idBiletu = idSprawdzane
+        );
+    dataZakupu = (
+        SELECT B.dataWydania FROM Bilety B
+        WHERE B.idBiletu = idSprawdzane
+        );
+    czasZakupu = (
+        SELECT B.czasWydania FROM Bilety B
+        WHERE B.idBiletu = idSprawdzane
+        );
+    CASE czasTrwania
+        WHEN '20-minutowy' THEN
+            IF obecnaData = dataZakupu THEN
+                IF czasZakupu + INTERVAL '20 minutes' >= obecnyCzas THEN
+                    RETURN TRUE;
+                END IF;
+            ELSEIF obecnaData = dataZakupu + INTERVAL '1 day' THEN
+                IF czasZakupu + INTERVAL '20minutes' > obecnyCzas THEN
+                    RETURN TRUE;
+                END IF;
+            END IF;
+        WHEN '60-minutowy' THEN
+            IF obecnaData = dataZakupu THEN
+                IF czasZakupu + INTERVAL '60 minutes' >= obecnyCzas THEN
+                    RETURN TRUE;
+                END IF;
+            ELSEIF obecnaData = dataZakupu + INTERVAL '1 day' THEN
+                IF czasZakupu + INTERVAL '60minutes' > obecnyCzas THEN
+                    RETURN TRUE;
+                END IF;
+            END IF;
+        WHEN '90-minutowy' THEN
+            IF obecnaData = dataZakupu THEN
+                IF czasZakupu + INTERVAL '90 minutes' >= obecnyCzas THEN
+                    RETURN TRUE;
+                END IF;
+            ELSEIF obecnaData = dataZakupu + INTERVAL '1 day' THEN
+                IF czasZakupu + INTERVAL '90 minutes' > obecnyCzas THEN
+                    RETURN TRUE;
+                END IF;
+            END IF;
+        WHEN '24-godzinny' THEN
+            IF obecnaData = dataZakupu THEN
+                    RETURN TRUE;
+            ELSEIF obecnaData = dataZakupu + INTERVAL '1 day' THEN
+                IF czasZakupu + INTERVAL '24 hours' > obecnyCzas THEN
+                    RETURN TRUE;
+                END IF;
+            END IF;
+        WHEN '48-godzinny' THEN
+        WHEN '72-godzinny' THEN
+        WHEN '7-dniowy' THEN
+        WHEN 'weekendowy' THEN
+        WHEN 'miesięczny' OR 'miesięczny jedna linia' THEN
+        WHEN 'półroczny'THEN
+    END CASE;
+END;
+$$ LANGUAGE plpgsql;
 
