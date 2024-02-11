@@ -6,166 +6,93 @@
 
 --CREATE DATABASE MPK;
 
-
-DROP TABLE IF EXISTS UmowyPracownikow;
-
-DROP TABLE IF EXISTS KierowcyAutobusow CASCADE;
-
-DROP TABLE IF EXISTS KierowcyTramwajow CASCADE;
-
-DROP TABLE IF EXISTS Zwolnienia;
-
-DROP TABLE IF EXISTS Bilety CASCADE;
-
-DROP TABLE IF EXISTS Klienci CASCADE;
-
-DROP TABLE IF EXISTS Pracownicy CASCADE;
-
-DROP TABLE IF EXISTS Transakcje;
-
-DROP TABLE IF EXISTS Doladowania;
-
-DROP TABLE IF EXISTS KartyMiejskie CASCADE;
-
-DROP TABLE IF EXISTS ModeleAutobusow CASCADE;
-
-DROP TABLE IF EXISTS ModeleTramwajow CASCADE;
-
-DROP TABLE IF EXISTS TransakcjeKartyMiejskie;
-
-DROP TABLE IF EXISTS Tramwaje CASCADE;
-
-DROP TABLE IF EXISTS Autobusy CASCADE;
-
-DROP TABLE IF EXISTS PrzystankiTramwajowe CASCADE;
-
-DROP TABLE IF EXISTS PrzystankiAutobusowe CASCADE;
-
-DROP TABLE IF EXISTS ZajezdnieTramwajowe;
-
-DROP TABLE IF EXISTS ZajezdnieAutobusowe;
-
-DROP TABLE IF EXISTS PetleTramwajowe CASCADE;
-
-DROP TABLE IF EXISTS PetleAutobusowe CASCADE;
-
-DROP TABLE IF EXISTS Pasażerowie CASCADE;
-
-DROP TABLE IF EXISTS Mandaty;
-
-DROP SEQUENCE IF EXISTS sekwencjaLinie CASCADE;
-
-DROP SEQUENCE IF EXISTS sekwencjaIDKursu CASCADE;
-
-DROP TABLE IF EXISTS LinieTramwajowe CASCADE;
-
-DROP TABLE IF EXISTS LinieAutobusowe CASCADE;
-
-DROP TABLE IF EXISTS PrzejazdyTramwajowe;
-
-DROP TABLE IF EXISTS PrzejazdyAutobusowe;
-
-DROP TABLE IF EXISTS RozkladTramwaje;
-
-DROP TABLE IF EXISTS RozkladAutobusy;
-
+---------------------------------------------------------------------------------------------------------------
+--typy i sekwencje--
+---------------------------------------------------------------------------------------------------------------
 DROP TYPE IF EXISTS statusPracownika CASCADE;
-
-DROP TYPE IF EXISTS statusKarty CASCADE;
-
-DROP TYPE IF EXISTS statusKlienta CASCADE;
-
-DROP TYPE IF EXISTS warunki CASCADE;
-
-DROP TYPE IF EXISTS typBiletu CASCADE;
-
-DROP TYPE IF EXISTS typKarty CASCADE;
-
-DROP TYPE IF EXISTS typZwolnienia CASCADE;
-
-DROP TYPE IF EXISTS okresBiletu CASCADE;
-
-DROP TYPE IF EXISTS zasiegBiletu CASCADE;
-
-DROP TYPE IF EXISTS statusZnizki CASCADE;
-
-DROP TYPE IF EXISTS statusZwolnienia CASCADE;
-
-DROP TYPE IF EXISTS metodaPlatnosci CASCADE;
-
-DROP TYPE IF EXISTS miejsceKupna CASCADE;
-
-DROP TYPE IF EXISTS typTransakcji CASCADE;
-
-DROP TYPE IF EXISTS tryb CASCADE;
-
-DROP TYPE IF EXISTS czyUlgowy CASCADE;
-
-DROP TYPE IF EXISTS stanPojazdu CASCADE;
-
-DROP TYPE IF EXISTS stanMiejsca CASCADE;
-
-DROP TYPE IF EXISTS typLinii CASCADE;
-
-DROP TYPE IF EXISTS kwotaMandatu CASCADE;
-
-DROP TYPE IF EXISTS opisMandatu CASCADE;
-
 CREATE TYPE statusPracownika AS ENUM ('zwolnienie', 'aktywny', 'urlop');
 
+DROP TYPE IF EXISTS tryb CASCADE;
 CREATE TYPE tryb AS ENUM ( 'stacjonarnie', 'hybrydowe', 'zdalnie');
 
+DROP TYPE IF EXISTS typZwolnienia CASCADE;
 CREATE TYPE typZwolnienia AS ENUM ('chorobowe', 'urlop bezpłatny', 'urlop płatny');
 
+DROP TYPE IF EXISTS statusZwolnienia CASCADE;
 CREATE TYPE statusZwolnienia AS ENUM ('zakończone', 'w trakcie');
 
+DROP TYPE IF EXISTS typBiletu CASCADE;
 CREATE TYPE typBiletu AS ENUM ('do kasowania', 'metropolitalny', 'mieszkanca',
     'socjalny', 'bezrobotny', 'firmowy');
 
+DROP TYPE IF EXISTS czyUlgowy CASCADE;
 CREATE TYPE czyUlgowy AS ENUM ('tak', 'nie');
 
+DROP TYPE IF EXISTS zasiegBiletu CASCADE;
 CREATE TYPE zasiegBiletu AS ENUM ('I', 'II', 'III', 'I+II', 'II+III',
     'I+II+III');
 
+DROP TYPE IF EXISTS okresBiletu CASCADE;
 CREATE TYPE okresBiletu AS ENUM ('20-minutowy', '60-minutowy',
     '90-minutowy', '24-godzinny', '48-godzinny', '72-godzinny',
         '7-dniowy', 'weekendowy', 'miesięczny', 'miesięczny 1 linia',
         'półroczny'
     );
 
+DROP TYPE IF EXISTS metodaPlatnosci CASCADE;
 CREATE TYPE metodaPlatnosci AS ENUM('karta', 'gotowka', 'przelew blik', 'aplikacja');
 
-
+DROP TYPE IF EXISTS statusKlienta CASCADE;
 CREATE TYPE statusKlienta AS ENUM ('aktywny', 'nieaktywny', 'zablokowany');
 
+DROP TYPE IF EXISTS statusZnizki CASCADE;
 CREATE TYPE statusZnizki AS ENUM ('obowiazuje', 'nieobowiazuje');
 
+DROP TYPE IF EXISTS typKarty CASCADE;
 CREATE TYPE typKarty AS ENUM ('legitymacja studencka/doktorska',
     'standardowa', 'senior');
 
+DROP TYPE IF EXISTS statusKarty CASCADE;
 CREATE TYPE statusKarty AS ENUM ('aktywna', 'zawieszona', 'wygasla');
 
+DROP TYPE IF EXISTS typTransakcji CASCADE;
 CREATE TYPE typTransakcji AS ENUM ('doładowanie', 'kupno');
 
+DROP TYPE IF EXISTS stanPojazdu CASCADE;
 CREATE TYPE stanPojazdu AS ENUM ('czynny', 'zepsuty', 'serwisowany' , 'wycofany');
 
+DROP TYPE IF EXISTS stanMiejsca CASCADE;
 CREATE TYPE stanMiejsca AS ENUM('czynny', 'remontowany', 'wycofany');
 
+DROP TYPE IF EXISTS typLinii CASCADE;
 CREATE TYPE typLinii AS ENUM('zwykla', 'nocna', 'aglomeracyjna', 'zastepdza');
 
+DROP TYPE IF EXISTS kwotaMandatu CASCADE;
 CREATE TYPE kwotaMandatu AS ENUM('150', '240', '510');
 
+DROP TYPE IF EXISTS opisMandatu CASCADE;
 CREATE TYPE opisMandatu AS ENUM ('spowodowanie zatrzymania bez uzasadnionej przyczyny',
     'naruszenie przepisów o przewozie zwierząt', 'nieważny dokument uprawniający do ulgi',
     'niewazny dokument uprawniający do przejazdu darmowego');
 
 
-
+DROP SEQUENCE IF EXISTS sekwencjaLinie CASCADE;
 CREATE SEQUENCE sekwencjaLinie AS INT
     INCREMENT 1
     START 1
     CACHE 1;
 
+DROP SEQUENCE IF EXISTS sekwencjaPrzejazdy CASCADE;
+CREATE SEQUENCE sekwencjaPrzejazdy AS INT
+    INCREMENT 1
+    START 1
+    CACHE 1;
+
+---------------------------------------------------------------------------------------------------------------
+--tabele--
+---------------------------------------------------------------------------------------------------------------
+
+DROP TABLE IF EXISTS Pracownicy CASCADE;
 CREATE TABLE Pracownicy (
     idPracownika INT PRIMARY KEY,
     imie VARCHAR(40) NOT NULL,
@@ -180,6 +107,7 @@ CREATE TABLE Pracownicy (
     idPrzelozonego INT DEFAULT NULL
 );
 
+DROP TABLE IF EXISTS UmowyPracownikow;
 CREATE TABLE UmowyPracownikow (
     idUmowy INT NOT NULL ,
     idPracownika INT REFERENCES Pracownicy(idPracownika) ON DELETE CASCADE,
@@ -190,6 +118,7 @@ CREATE TABLE UmowyPracownikow (
     trybPracy tryb NOT NULL
 );
 
+DROP TABLE IF EXISTS KierowcyAutobusow CASCADE;
 CREATE TABLE KierowcyAutobusow (
     idLicencji VARCHAR(20) PRIMARY KEY,
     idPracownika INT REFERENCES Pracownicy(idPracownika) ON DELETE CASCADE,
@@ -197,6 +126,7 @@ CREATE TABLE KierowcyAutobusow (
     licencjaDo DATE NOT NULL
 );
 
+DROP TABLE IF EXISTS KierowcyTramwajow CASCADE;
 CREATE TABLE KierowcyTramwajow (
     idLicencji VARCHAR(10) PRIMARY KEY,
     idPracownika INT REFERENCES Pracownicy(idPracownika) ON DELETE CASCADE,
@@ -204,7 +134,7 @@ CREATE TABLE KierowcyTramwajow (
     licencjaDo DATE NOT NULL
 );
 
-
+DROP TABLE IF EXISTS Zwolnienia;
 CREATE TABLE Zwolnienia (
     idZwolnienia INT PRIMARY KEY,
     idPracownika INT REFERENCES Pracownicy(idPracownika) ON DELETE CASCADE,
@@ -214,6 +144,7 @@ CREATE TABLE Zwolnienia (
     stanZwolnienia statusZwolnienia NOT NULL
 );
 
+DROP TABLE IF EXISTS Pasażerowie CASCADE;
 CREATE TABLE Pasażerowie (
     idPasażera INT PRIMARY KEY,
     Imie VARCHAR(50) NOT NULL,
@@ -222,6 +153,7 @@ CREATE TABLE Pasażerowie (
     SumaMandatów INT NOT NULL DEFAULT 0
 );
 
+DROP TABLE IF EXISTS Mandaty;
 CREATE TABLE Mandaty (
     idMandatu INT PRIMARY KEY,
     idPasażera INT REFERENCES Pasażerowie(idPasażera) ON DELETE CASCADE,
@@ -230,6 +162,7 @@ CREATE TABLE Mandaty (
     opis opisMandatu NOT NULL
 );
 
+DROP TABLE IF EXISTS Bilety CASCADE;
 CREATE TABLE Bilety (
     idBiletu INT PRIMARY KEY ,
     typ typBiletu NOT NULL,
@@ -243,6 +176,7 @@ CREATE TABLE Bilety (
     idPasażera INT REFERENCES Pasażerowie(idPasażera) ON DELETE CASCADE
 );
 
+DROP TABLE IF EXISTS Klienci CASCADE;
 CREATE TABLE Klienci (
     idKlienta INT PRIMARY KEY ,
     imie VARCHAR(40) NOT NULL,
@@ -256,20 +190,8 @@ CREATE TABLE Klienci (
     znizka statusZnizki NOT NULL
 );
 
-CREATE TABLE ZajezdnieTramwajowe(
-    nazwa VARCHAR(50) PRIMARY KEY,
-    adres VARCHAR(50) NOT NULL UNIQUE,
-    maxPojazdow INT NOT NULL,
-    stan stanMiejsca NOT NULL
-);
 
-CREATE TABLE ZajezdnieAutobusowe(
-    nazwa VARCHAR(50) PRIMARY KEY,
-    adres VARCHAR(50) NOT NULL UNIQUE,
-    maxPojazdow INT NOT NULL,
-    stan stanMiejsca NOT NULL
-);
-
+DROP TABLE IF EXISTS KartyMiejskie CASCADE;
 CREATE TABLE KartyMiejskie (
     idKarty INT PRIMARY KEY,
     idKlienta INT REFERENCES Klienci(idKlienta) ON DELETE CASCADE,
@@ -282,6 +204,7 @@ CREATE TABLE KartyMiejskie (
     saldo MONEY DEFAULT 0.00
 );
 
+DROP TABLE IF EXISTS TransakcjeKartyMiejskie;
 CREATE TABLE TransakcjeKartyMiejskie (
     idTransakcji INT PRIMARY KEY,
     idKarty INT REFERENCES KartyMiejskie(idKarty),
@@ -295,6 +218,7 @@ CREATE TABLE TransakcjeKartyMiejskie (
     godzinaTransakcji TIME NOT NULL
 );
 
+DROP TABLE IF EXISTS ModeleTramwajow CASCADE;
 CREATE TABLE ModeleTramwajow (
     model VARCHAR(40) PRIMARY KEY,
     producent VARCHAR(40) NOT NULL,
@@ -309,6 +233,7 @@ CREATE TABLE ModeleTramwajow (
     mocKM INT
 );
 
+DROP TABLE IF EXISTS ModeleAutobusow CASCADE;
 CREATE TABLE ModeleAutobusow (
     model VARCHAR(40) PRIMARY KEY,
     producent VARCHAR(40) NOT NULL,
@@ -324,6 +249,23 @@ CREATE TABLE ModeleAutobusow (
     typNapedu VARCHAR(20)
 );
 
+DROP TABLE IF EXISTS ZajezdnieTramwajowe CASCADE;
+CREATE TABLE ZajezdnieTramwajowe(
+    nazwa VARCHAR(50) PRIMARY KEY,
+    adres VARCHAR(50) NOT NULL UNIQUE,
+    maxPojazdow INT NOT NULL,
+    stan stanMiejsca NOT NULL
+);
+
+DROP TABLE IF EXISTS ZajezdnieAutobusowe CASCADE;
+CREATE TABLE ZajezdnieAutobusowe(
+    nazwa VARCHAR(50) PRIMARY KEY,
+    adres VARCHAR(50) NOT NULL UNIQUE,
+    maxPojazdow INT NOT NULL,
+    stan stanMiejsca NOT NULL
+);
+
+DROP TABLE IF EXISTS Tramwaje CASCADE;
 CREATE TABLE Tramwaje(
     numerPojazdu VARCHAR(10) PRIMARY KEY,
     model VARCHAR(40) REFERENCES ModeleTramwajow(model) ON DELETE CASCADE,
@@ -331,6 +273,7 @@ CREATE TABLE Tramwaje(
     stan stanPojazdu NOT NULL
 );
 
+DROP TABLE IF EXISTS Autobusy CASCADE;
 CREATE TABLE Autobusy(
     numerPojazdu VARCHAR(10) PRIMARY KEY,
     model VARCHAR(40) REFERENCES ModeleAutobusow(model) ON DELETE CASCADE ,
@@ -339,18 +282,21 @@ CREATE TABLE Autobusy(
 
 );
 
+DROP TABLE IF EXISTS PrzystankiTramwajowe CASCADE;
 CREATE TABLE PrzystankiTramwajowe(
     nazwa VARCHAR(50) PRIMARY KEY,
     podwojny BOOLEAN NOT NULL,
     stan stanMiejsca NOT NULL
 );
 
+DROP TABLE IF EXISTS PrzystankiAutobusowe CASCADE;
 CREATE TABLE PrzystankiAutobusowe(
     nazwa VARCHAR(50) PRIMARY KEY,
     podwojny BOOLEAN NOT NULL,
     stan stanMiejsca NOT NULL
 );
 
+DROP TABLE IF EXISTS PetleTramwajowe CASCADE;
 CREATE TABLE PetleTramwajowe(
     nazwa VARCHAR(50) PRIMARY KEY,
     adres VARCHAR(50) NOT NULL UNIQUE,
@@ -358,12 +304,14 @@ CREATE TABLE PetleTramwajowe(
     stan stanMiejsca NOT NULL
 );
 
+DROP TABLE IF EXISTS PetleAutobusowe CASCADE;
 CREATE TABLE PetleAutobusowe(
     nazwa VARCHAR(50) PRIMARY KEY,
     adres VARCHAR(50) NOT NULL UNIQUE,
     stan stanMiejsca NOT NULL
 );
 
+DROP TABLE IF EXISTS LinieTramwajowe CASCADE;
 CREATE TABLE LinieTramwajowe(
     idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
     numer INT UNIQUE,
@@ -372,6 +320,7 @@ CREATE TABLE LinieTramwajowe(
     typ typLinii NOT NULL
 );
 
+DROP TABLE IF EXISTS LinieAutobusowe CASCADE;
 CREATE TABLE LinieAutobusowe(
     idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
     numer INT UNIQUE,
@@ -380,6 +329,7 @@ CREATE TABLE LinieAutobusowe(
     typ typLinii NOT NULL
 );
 
+DROP TABLE IF EXISTS RozkladTramwaje CASCADE;
 CREATE TABLE RozkladTramwaje(
     idKursu INT DEFAULT 0,
     przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe NOT NULL,
@@ -388,6 +338,7 @@ CREATE TABLE RozkladTramwaje(
     PRIMARY KEY (przystanek, idLinii, idKursu)
 );
 
+DROP TABLE IF EXISTS RozkladAutobusy CASCADE;
 CREATE TABLE RozkladAutobusy(
     idKursu INT DEFAULT 0,
     przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe NOT NULL,
@@ -396,23 +347,50 @@ CREATE TABLE RozkladAutobusy(
     PRIMARY KEY (przystanek, idLinii, idKursu)
 );
 
-
+DROP TABLE IF EXISTS PrzejazdyTramwajowe CASCADE;
 CREATE TABLE PrzejazdyTramwajowe(
-    idPrzejazdu INT PRIMARY KEY,
+    idPrzejazdu INT PRIMARY KEY DEFAULT nextval('sekwencjaPrzejazdy'),
     pojazd VARCHAR(10) REFERENCES Tramwaje(numerPojazdu) ON DELETE SET NULL,
     idKursu INT REFERENCES  RozkladTramwaje(idKursu)  ON DELETE CASCADE,
     kierowca VARCHAR REFERENCES KierowcyTramwajow(idLicencji) ON DELETE SET NULL,
     data DATE NOT NULL
 );
 
+DROP TABLE IF EXISTS PrzejazdyAutobusowe CASCADE;
 CREATE TABLE PrzejazdyAutobusowe(
-    idPrzejazdu INT PRIMARY KEY,
+    idPrzejazdu INT PRIMARY KEY DEFAULT nextval('sekwencjaPrzejazdy'),
     pojazd VARCHAR(10) REFERENCES Autobusy(numerPojazdu) ON DELETE SET NULL ,
     idKursu INT REFERENCES RozkladAutobusy(idKursu) ON DELETE CASCADE,
     kierowca VARCHAR REFERENCES KierowcyAutobusow(idLicencji) ON DELETE SET NULL ,
     data DATE NOT NULL
 );
 
+---------------------------------------------------------------------------------------------------------------
+--wyzwalacze--
+---------------------------------------------------------------------------------------------------------------
+
+--wstawiają id kursu
+CREATE OR REPLACE TRIGGER tr_before_rozkladTramwaje BEFORE INSERT ON RozkladTramwaje
+    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
+
+CREATE OR REPLACE TRIGGER tr_before_rozkladAutobusy BEFORE INSERT ON RozkladAutobusy
+    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
+
+--sprawdzają czy zajezdnia jest czynna i czy są w niej miejsca
+CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
+    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
+    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_after_Mandaty AFTER INSERT ON Mandaty
+    EXECUTE FUNCTION nalozMandat();
 
 ---------------------------------------------------------------------------------------------------------------
 --wypełnianie bazy danych--
@@ -744,31 +722,7 @@ VALUES
 --dodac przejazdy
 
 
----------------------------------------------------------------------------------------------------------------
---wyzwalacze--
----------------------------------------------------------------------------------------------------------------
 
---wstawiają id kursu
-CREATE OR REPLACE TRIGGER tr_after_rozkladTramwaje AFTER INSERT ON RozkladTramwaje
-    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
-
-CREATE OR REPLACE TRIGGER tr_after_rozkladAutobusy AFTER INSERT ON RozkladAutobusy
-    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
---sprawdzają czy zajezdnia jest czynna i czy są w niej miejsca
-CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje
-    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
-
-CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
-    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
-
-CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
-    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
-
-CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
-    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
-
-CREATE OR REPLACE TRIGGER tr_after_Mandaty AFTER INSERT ON Mandaty
-    EXECUTE FUNCTION nalozMandat();
 
 ---------------------------------------------------------------------------------------------------------------
 

@@ -9,7 +9,7 @@ CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
         'destinations' : adresObecny',
         'origins': adresZajezdni,
         'units': 'metric',
-        'key' : 'PLACEHOLDER'
+        'key' : 'PLACEHOLDER '
     }
     wynik = requests.get(url, params=parametry)
     return(wynik.json()['rows'][0]['elements'][0]['duration']['text'])
