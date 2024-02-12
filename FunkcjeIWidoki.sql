@@ -16,7 +16,6 @@ CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
 $$
  LANGUAGE plpython3u;
 
-
 --widok pokazujacy laczne roczne zarobki z danego roku z biletow i kart miejskich osobno
 CREATE OR REPLACE VIEW LaczneZarobki AS
 
@@ -156,9 +155,10 @@ BEGIN
                     RETURN TRUE;
                 END IF;
             ELSEIF obecnaData = dataZakupu + INTERVAL '1 day' THEN
-                IF czasZakupu + INTERVAL '20minutes' > obecnyCzas THEN
+                IF czasZakupu + INTERVAL '20minutes' < obecnyCzas THEN
                     RETURN TRUE;
                 END IF;
+                RETURN FALSE;
             END IF;
         WHEN '60-minutowy' THEN
             IF obecnaData = dataZakupu THEN
@@ -166,35 +166,106 @@ BEGIN
                     RETURN TRUE;
                 END IF;
             ELSEIF obecnaData = dataZakupu + INTERVAL '1 day' THEN
-                IF czasZakupu + INTERVAL '60minutes' > obecnyCzas THEN
+                IF czasZakupu + INTERVAL '60minutes' < obecnyCzas THEN
                     RETURN TRUE;
                 END IF;
+                RETURN FALSE;
             END IF;
         WHEN '90-minutowy' THEN
             IF obecnaData = dataZakupu THEN
                 IF czasZakupu + INTERVAL '90 minutes' >= obecnyCzas THEN
-                    RETURN TRUE;
+                RETURN TRUE;
                 END IF;
             ELSEIF obecnaData = dataZakupu + INTERVAL '1 day' THEN
-                IF czasZakupu + INTERVAL '90 minutes' > obecnyCzas THEN
+                IF czasZakupu + INTERVAL '90 minutes' < obecnyCzas THEN
                     RETURN TRUE;
                 END IF;
+                RETURN FALSE;
             END IF;
         WHEN '24-godzinny' THEN
             IF obecnaData = dataZakupu THEN
-                    RETURN TRUE;
+                RETURN TRUE;
             ELSEIF obecnaData = dataZakupu + INTERVAL '1 day' THEN
-                IF czasZakupu + INTERVAL '24 hours' > obecnyCzas THEN
+                IF obecnyCzas < czasZakupu THEN
                     RETURN TRUE;
                 END IF;
+                RETURN FALSE;
             END IF;
         WHEN '48-godzinny' THEN
+            IF obecnaData = dataZakupu THEN
+                RETURN TRUE;
+            ELSEIF obecnaData = dataZakupu + INTERVAL '2 days' THEN
+                IF obecnyCzas < czasZakupu THEN
+                    RETURN TRUE;
+                END IF;
+                RETURN FALSE;
+            END IF;
         WHEN '72-godzinny' THEN
+            IF obecnaData = dataZakupu THEN
+                RETURN TRUE;
+            ELSEIF obecnaData = dataZakupu + INTERVAL '3 days' THEN
+                IF obecnyCzas < czasZakupu THEN
+                    RETURN TRUE;
+                END IF;
+                RETURN FALSE;
+            END IF;
         WHEN '7-dniowy' THEN
+            IF obecnaData = dataZakupu THEN
+                RETURN TRUE;
+            ELSEIF obecnaData = dataZakupu + INTERVAL '1 day' THEN
+                IF obecnyCzas < czasZakupu THEN
+                    RETURN TRUE;
+                END IF;
+                RETURN FALSE;
+            END IF;
         WHEN 'weekendowy' THEN
+            IF NOT (EXTRACT(DOW FROM dataZakupu) = 0 OR EXTRACT(DOW FROM dataZakupu) = 6) THEN
+                RETURN FALSE;
+            END IF;
         WHEN 'miesięczny' OR 'miesięczny jedna linia' THEN
+            IF obecnaData = dataZakupu THEN
+                RETURN TRUE;
+            ELSEIF obecnaData = dataZakupu + INTERVAL '1 month' THEN
+                IF obecnyCzas < czasZakupu THEN
+                    RETURN TRUE;
+                END IF;
+                RETURN FALSE;
+            END IF;
         WHEN 'półroczny'THEN
+            IF obecnaData = dataZakupu THEN
+                RETURN TRUE;
+            ELSEIF obecnaData = dataZakupu + INTERVAL '6 months' THEN
+                IF obecnyCzas < czasZakupu THEN
+                    RETURN TRUE;
+                END IF;
+                RETURN FALSE;
+            END IF;
     END CASE;
-END;
+END
 $$ LANGUAGE plpgsql;
 
+--funkcja zwracająca pojazd, w którym zajęte jest najwięcej miejsc(pojazdy)
+CREATE OR REPLACE FUNCTION najbardziejZapelnionyPojazd()
+    RETURNS TABLE (nazwaPojazdu VARCHAR(256), numerPojazdu VARCHAR(256), markaPojazdu VARCHAR(256), modelPojazdu VARCHAR(256))
+AS $$
+BEGIN
+    RETURN QUERY
+    WITH NajbardziejZapelniony AS (
+        SELECT B.idPojazdu, COUNT(*) AS liczbaBiletow
+        FROM Bilety B
+        GROUP BY B.idPojazdu
+        ORDER BY liczbaBiletow DESC
+        LIMIT 1
+    ),
+    SzczegolyPojazdu AS (
+        SELECT 'Autobus' AS typPojazdu, A.idPojazdu, A.marka, A.model
+        FROM Autobusy A
+        JOIN NajbardziejZapelniony NZ ON A.idPojazdu = NZ.idPojazdu
+        UNION ALL
+        SELECT 'Tramwaj' AS typPojazdu, T.idPojazdu, T.marka, T.model
+        FROM Tramwaje T
+        JOIN NajbardziejZapelniony NZ ON T.idPojazdu = NZ.idPojazdu
+    )
+    SELECT * FROM SzczegolyPojazdu;
+END
+$$ LANGUAGE plpgsql;

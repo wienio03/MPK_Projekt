@@ -144,16 +144,6 @@ CREATE TABLE Zwolnienia (
     stanZwolnienia statusZwolnienia NOT NULL
 );
 
-DROP TABLE IF EXISTS Pasażerowie CASCADE;
-
-DROP TABLE IF EXISTS Mandaty;
-CREATE TABLE Mandaty (
-    idMandatu INT PRIMARY KEY,
-    idPasażera INT REFERENCES Pasażerowie(idPasażera) ON DELETE CASCADE,
-    kwota kwotaMandatu NOT NULL,
-    dataWystawienia DATE NOT NULL,
-    opis opisMandatu NOT NULL
-);
 DROP TABLE IF EXISTS Klienci CASCADE;
 CREATE TABLE Klienci (
     idKlienta INT PRIMARY KEY ,
@@ -470,17 +460,6 @@ INSERT INTO Zwolnienia (idZwolnienia, idPracownika, dataRozpoczecia, dataZakoncz
   (20, 6, '2022-09-11', '2022-10-23', 'urlop bezpłatny', 'zakończone');
 
 
-INSERT INTO Mandaty (idMandatu, idPasażera, kwota, dataWystawienia, opis) VALUES
-    (1, 1, '150' , '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
-    (2, 2, '510', '24-01-2024', 'spowodowanie zatrzymania bez uzasadnionej przyczyny'),
-    (3, 4, '240', '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
-    (4, 15, '150', '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
-    (5, 11, '150', '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
-    (6, 12, '240', '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
-    (7, 11, '240', '24-01-2024', 'niewazny dokument uprawniający do przejazdu darmowego'),
-    (8, 11, '150', '24-01-2024', 'nieważny dokument uprawniający do ulgi'),
-    (9, 5, '510', '24-01-2024', 'spowodowanie zatrzymania bez uzasadnionej przyczyny'),
-    (10, 6, '150', '24-01-2024', 'nieważny dokument uprawniający do ulgi');
 
 INSERT INTO Bilety (idBiletu, typ, ulgowy, zasieg, okres, idPojazdu, platnosc, datawydania, czaswydania, cena, idKlienta) VALUES
 (1, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'KJ502', 'przelew blik', '2023-06-23', '17:33:44', 169.00, 1),

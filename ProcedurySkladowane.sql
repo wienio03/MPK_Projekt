@@ -1,4 +1,21 @@
-CREATE OR REPLACE FUNCTION dokonajTransakcji()
+--procedury odpowiadajace za doladowanie salda karty lub pobrania adekwatnej kwoty przy kupnie biletu
+CREATE OR REPLACE FUNCTION doladujKarte()
+    RETURNS TRIGGER AS $$
+        DECLARE obecneSaldo INT;
+    BEGIN
+        obecneSaldo = (
+                       SELECT KM.saldo FROM KartyMiejskie KM
+                        WHERE KM.idKarty = NEW.idKarty);
+        IF NEW.rodzaj = 'doladowanie' THEN
+            UPDATE KartyMiejskie
+            SET saldo = obecneSaldo + NEW.kwota
+            WHERE KartyMiejskie.idKarty = NEW.idKarty;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION kupBilet()
     RETURNS TRIGGER AS $$
         DECLARE obecneSaldo INT;
     BEGIN
