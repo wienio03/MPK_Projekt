@@ -330,58 +330,42 @@ CREATE TABLE LinieAutobusowe(
     typ typLinii NOT NULL
 );
 
-DROP TABLE IF EXISTS PrzystankiNaLiniiTramwajowej CASCADE;
-CREATE TABLE PrzystankiNaLiniiTramwajowej(
-    idLinii INT REFERENCES LinieTramwajowe ON DELETE CASCADE,
-    przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe ON DELETE CASCADE,
-    liczbaPorządkowa INT NOT NULL,
-    PRIMARY KEY(idLinii, przystanek)
-);
-
-DROP TABLE IF EXISTS PrzystankiNaLiniiAutobusowej CASCADE;
-CREATE TABLE PrzystankiNaLiniiAutobusowej(
-    idLinii INT REFERENCES LinieAutobusowe ON DELETE CASCADE,
-    przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe ON DELETE CASCADE,
-    liczbaPorządkowa INT NOT NULL,
-    PRIMARY KEY(idLinii, przystanek)
-);
-
 DROP TABLE IF EXISTS RozkladTramwaje CASCADE;
 CREATE TABLE RozkladTramwaje(
-    przystanek VARCHAR(50),
-    idLinii INT,
+    przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe,
+    idLinii INT REFERENCES LinieTramwajowe(idLinii),
+    idKursu INT,
     godzina TIME,
-    PRIMARY KEY (przystanek, idLinii, godzina),
-    FOREIGN KEY(idLinii, przystanek) REFERENCES PrzystankiNaLiniiTramwajowej ON DELETE CASCADE
+    PRIMARY KEY (przystanek, idLinii, idKursu)
 );
 
 DROP TABLE IF EXISTS RozkladAutobusy CASCADE;
 CREATE TABLE RozkladAutobusy(
-    przystanek VARCHAR(50),
-    idLinii INT,
+    przystanek VARCHAR(50) REFERENCES PrzystankiAutobusowe,
+    idLinii INT REFERENCES LinieAutobusowe(idLinii),
+    idKursu INT,
     godzina TIME,
-    PRIMARY KEY (przystanek, idLinii, godzina),
-    FOREIGN KEY(idLinii, przystanek) REFERENCES PrzystankiNaLiniiAutobusowej ON DELETE CASCADE
+    PRIMARY KEY (przystanek, idLinii, idKursu)
 );
 
 DROP TABLE IF EXISTS PrzejazdyTramwajowe CASCADE;
 CREATE TABLE PrzejazdyTramwajowe(
-    idPrzejazdu INT PRIMARY KEY DEFAULT nextval('sekwencjaPrzejazdy'),
-    idLinii INT REFERENCES LinieTramwajowe ON DELETE CASCADE,
-    pojazd VARCHAR(10) REFERENCES Tramwaje(numerPojazdu) ON DELETE SET NULL,
-    kierowca VARCHAR REFERENCES KierowcyTramwajow(idLicencji) ON DELETE SET NULL,
-    godzinaRozpoczęcia TIME NOT NULL,
-    data DATE NOT NULL
+    linia INT,
+    kurs INT,
+    data DATE,
+    pojazd VARCHAR(10) REFERENCES Tramwaje ON DELETE SET NULL,
+    kierowca VARCHAR REFERENCES KierowcyTramwajow ON DELETE SET NULL,
+    PRIMARY KEY (linia,kurs, data)
 );
 
 DROP TABLE IF EXISTS PrzejazdyAutobusowe CASCADE;
 CREATE TABLE PrzejazdyAutobusowe(
-    idPrzejazdu INT PRIMARY KEY DEFAULT nextval('sekwencjaPrzejazdy'),
-    idLinii INT REFERENCES LinieAutobusowe ON DELETE CASCADE,
-    pojazd VARCHAR(10) REFERENCES Autobusy(numerPojazdu) ON DELETE SET NULL,
-    kierowca VARCHAR REFERENCES KierowcyAutobusow(idLicencji) ON DELETE SET NULL,
-    godzinaRozpoczęcia TIME NOT NULL,
-    data DATE NOT NULL
+    linia INT,
+    kurs INT,
+    data DATE,
+    pojazd VARCHAR(10) REFERENCES Autobusy ON DELETE SET NULL,
+    kierowca VARCHAR REFERENCES KierowcyAutobusow ON DELETE SET NULL,
+    PRIMARY KEY (linia,kurs, data)
 );
 
 ---------------------------------------------------------------------------------------------------------------

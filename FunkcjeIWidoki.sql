@@ -77,14 +77,25 @@ $$;
 
 --zwraca lokalizację pojazdu, powinna zwracać dane z systemu geolokalizacji pojazdu,
 -- ale w ramach placeholdera zwraca przystanek na którym powinien być pojazd w tym momencie
-CREATE OR REPLACE FUNCTION LokalizacjaPojazdu(numerPojazdu VARCHAR(10))
+CREATE OR REPLACE FUNCTION LokalizacjaPojazdu(pojazdSzukany VARCHAR(10))
 RETURNS TEXT
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    RETURN (SELECT R.przystanek FROM RozkladAutobusy R JOIN PrzejazdyAutobusowe P ON P.idlinii = R.idlinii
-        WHERE CURRENT_DATE = P.data AND numerPojazdu = P.pojazd AND CURRENT_TIME - P.godzinarozpoczęcia = R.godzina);
+    IF pojazdSzukany IN (SELECT numerpojazdu FROM tramwaje) THEN
+        RETURN (SELECT R.przystanek FROM rozkladtramwaje R JOIN przejazdytramwajowe P ON P.linia = R.idlinii AND P.kurs = R.idKursu
+        WHERE CURRENT_DATE = P.data AND pojazdSzukany = P.pojazd
+        ORDER BY current_time - R.godzina ASC
+        LIMIT 1);
+    ELSEIF pojazdSzukany IN (SELECT numerPojazdu FROM autobusy) THEN
+        RETURN (SELECT R.przystanek FROM RozkladAutobusy R JOIN PrzejazdyAutobusowe P ON P.linia = R.idlinii AND P.kurs = R.idKursu
+        WHERE CURRENT_DATE = P.data AND pojazdSzukany = P.pojazd
+        ORDER BY current_time - R.godzina ASC
+        LIMIT 1);
+    ELSE
+        RETURN 'Nie ma takiego pojazdu';
+    END IF;
 END;
 $$;
 
@@ -98,7 +109,7 @@ DECLARE
     współrzędneMiejscaAwarii VARCHAR(50);
 BEGIN
     współrzędneMiejscaAwarii = LokalizacjaPojazdu(numerZepsutegoPojazdu);
-    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, współrzędneMiejscaAwarii)
+    RETURN QUERY SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, współrzędneMiejscaAwarii)
     FROM Autobusy A
         JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa
     WHERE A.stan = 'czynny';
@@ -124,16 +135,22 @@ CREATE OR REPLACE VIEW WszystkieLinie AS
     UNION
     SELECT * From linietramwajowe;
 
-CREATE OR REPLACE FUNCTION KursOGodzinie(idLinii INT, godzina TIME,  typ VARCHAR)
-RETURNS TABLE(przystanek VARCHAR(50), godzina TIME)
+CREATE OR REPLACE FUNCTION PrzystankiNaLinii(linia INT)
+RETURNS TABLE(przystanek VARCHAR(50), kolejnosc INT)
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    CASE typ WHEN 'Autobus' THEN
-    SELECT R.przystanek, R.godzina FROM RozkladAutobusy R JOIN przystankinaliniiautobusowej P ON P.idlinii = R.idlinii AND P.przystanek = R.przystanek
-        WHERE R.godzina = (SELECT MIN(A.godzina) FROM rozkladautobusy A WHERE A.godzina > (SELECT ))
-END;
+    IF linia IN (SELECT idlinii FROM linietramwajowe) THEN
+        RETURN QUERY (SELECT przystanek, RANK() OVER(ORDER BY godzina ASC) as Kolejnosc FROM rozkladtramwaje R
+            WHERE linia = R.idlinii AND idkursu = (SELECT  min(idkursu) FROM rozkladtramwaje WHERE linia = R.idlinii));
+    ELSEIF linia IN (SELECT idlinii FROM linieautobusowe) THEN
+        RETURN QUERY (SELECT przystanek, RANK() OVER(ORDER BY godzina ASC) as Kolejnosc FROM rozkladautobusy R
+            WHERE linia = R.idlinii AND idkursu = (SELECT  min(idkursu) FROM rozkladautobusy WHERE linia = R.idlinii));
+    ELSE
+        RETURN QUERY (SELECT 'Nie ma takiej linii', 0);
+    END IF;
+END
 $$;
 
 
