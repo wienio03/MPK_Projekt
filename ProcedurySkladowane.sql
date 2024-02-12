@@ -96,3 +96,18 @@ end if;
 
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION sprawdzPoprawnoscPojazdu()
+RETURNS TRIGGER AS
+$$
+BEGIN
+    IF EXISTS(SELECT numerpojazdu FROM Autobusy WHERE numerpojazdu = NEW.numerPojazdu AND stan = 'czynny')
+           OR EXISTS (SELECT numerPojazdu FROM Tramwaje WHERE numerpojazdu = NEW.numerPojazdu AND stan = 'czynny') THEN
+        RETURN NEW;
+    ELSE
+        RAISE WARNING 'Nie istnieje pojazd %, dla którego dodano bilet %', NEW.numerPojazdu, NEW.idBiletu;
+        RETURN NULL;
+    END IF;
+
+END;
+$$;

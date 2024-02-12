@@ -401,6 +401,9 @@ CREATE OR REPLACE TRIGGER tr_before_update_tramwaje BEFORE UPDATE ON Tramwaje
 CREATE OR REPLACE TRIGGER tr_before_update_autobusy BEFORE UPDATE ON Autobusy
     FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
 
+--sprawdza czy istnieje pojazd w którym został zakupiony bilet
+CREATE OR REPLACE TRIGGER tr_before_insert_bilety BEFORE INSERT ON Bilety
+    FOR EACH ROW EXECUTE FUNCTION sprawdzPoprawnoscPojazdu();
 
 CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
