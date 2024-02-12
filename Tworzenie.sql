@@ -169,6 +169,7 @@ CREATE TABLE Bilety (
     ulgowy czyUlgowy NOT NULL,
     zasieg zasiegBiletu NOT NULL,
     okres okresBiletu NOT NULL,
+    idPojazdu VARCHAR(10) NOT NULL,
     platnosc metodaPlatnosci NOT NULL,
     dataWydania DATE NOT NULL,
     czasWydania TIME NOT NULL,
@@ -399,6 +400,7 @@ CREATE OR REPLACE TRIGGER tr_before_update_tramwaje BEFORE UPDATE ON Tramwaje
 
 CREATE OR REPLACE TRIGGER tr_before_update_autobusy BEFORE UPDATE ON Autobusy
     FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
 
 CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();

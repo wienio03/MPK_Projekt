@@ -122,6 +122,18 @@ CREATE OR REPLACE VIEW PojazdySerwisowane AS
 CREATE OR REPLACE VIEW WszystkieLinie AS
     SELECT * FROM LinieAutobusowe
     UNION
-    SELECT * From linietramwajowe
+    SELECT * From linietramwajowe;
+
+CREATE OR REPLACE FUNCTION KursOGodzinie(idLinii INT, godzina TIME,  typ VARCHAR)
+RETURNS TABLE(przystanek VARCHAR(50), godzina TIME)
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    CASE typ WHEN 'Autobus' THEN
+    SELECT R.przystanek, R.godzina FROM RozkladAutobusy R JOIN przystankinaliniiautobusowej P ON P.idlinii = R.idlinii AND P.przystanek = R.przystanek
+        WHERE R.godzina = (SELECT MIN(A.godzina) FROM rozkladautobusy A WHERE A.godzina > (SELECT ))
+END;
+$$;
 
 

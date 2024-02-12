@@ -57,7 +57,13 @@ $$;
 --czy pojazd jest czynny oraz czy pojazd nie jest przypisany do kursu w tym samym czasie
 
 
-
+WITH ostatniPrzystanekAutobusy AS (
+  SELECT idLinii, przystanek FROM przystankinaliniiautobusowej
+    WHERE liczbaporządkowa = (SELECT MAX(liczbaporządkowa) FROM przystankinaliniiautobusowej L WHERE L.idlinii = idlinii)
+), ostatniPrzystanekTramwaje AS (
+    SELECT idLinii, przystanek FROM przystankinaliniitramwajowej
+    WHERE liczbaporządkowa = (SELECT MAX(liczbaporządkowa) FROM przystankinaliniitramwajowej L WHERE L.idlinii = idlinii)
+)
 
 CREATE OR REPLACE FUNCTION sprawdzDostepnoscKierowcyIPojazdu()
 RETURNS TRIGGER AS $$
@@ -72,7 +78,11 @@ DECLARE
         WHEN 'PrzejazdyAutobusowe' THEN (SELECT stan FROM autobusy WHERE numerpojazdu = NEW.pojazd)
         ELSE (SELECT stan FROM tramwaje WHERE numerpojazdu = NEW.pojazd)
         END;
-    czyKierowcaDostepny = (
+    dostepnoscKierowcy bool = CASE tg_table_name
+        WHEN 'PrzejazdyAutobusowe' THEN EXISTS (SELECT P.idprzejazdu FROM przejazdyautobusowe P JOIN
+            (SELECT idLinii, przystanek FROM przystankinaliniiautobusowej
+                WHERE liczbaporządkowa = (SELECT MAX(liczbaporządkowa) FROM przystankinaliniiautobusowej L WHERE L.idlinii = idlinii)) O
+            ON P.idlinii = O.idLinii
 
 BEGIN
     IF urlop = TRUE THEN
@@ -81,7 +91,8 @@ BEGIN
     ELSEIF stan <> 'czynny' THEN
         RAISE WARNING 'Autobus przypisany do kursu % % % nie jest gotowy do użytku.', NEW.linia, NEW.data, NEW.godzina;
         RETURN NULL;
+    ELSEIF EXISTS (SELECT idPrzejazdu FROM przejazdyautobusowe
 end if;
 
-END
-$$
+END;
+$$;
