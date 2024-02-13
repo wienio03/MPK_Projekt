@@ -359,36 +359,27 @@ CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje
 CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
     FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
 
+
 --sprawdzają czy pojazd jest czynny, oraz czy nie ma innego kursu który kończy się mniej niż 10 minut wcześniej na tej samej pętli, lub mniej niż 45 minut wcześniej na innej
-CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
+CREATE OR REPLACE TRIGGER tr_before__insert_przejazdyTramwajowe_p BEFORE INSERT ON PrzejazdyTramwajowe
     EXECUTE FUNCTION sprawdzDostepnoscPojazdu();
 
-CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
+CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe_p BEFORE INSERT ON PrzejazdyAutobusowe
     EXECUTE FUNCTION sprawdzDostepnoscPojazdu();
+
 
 --sprawdzają czy kierowca nie jest na urlopie, oraz czy nie ma innego kursu, który kończy się mniej niż 10 minut wcześniej na tej samej pętli, lub mniej niż 45 minut wcześniej na innej
-CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
+CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe_k BEFORE INSERT ON PrzejazdyTramwajowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcy();
-<<<<<<< HEAD
 
-CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
+CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe_k BEFORE INSERT ON PrzejazdyAutobusowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcy();
+
 
 --sprawdzają czy istnieje taka para (linia, kurs)
-CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe2 BEFORE INSERT ON PrzejazdyTramwajowe
+CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe_i BEFORE INSERT ON PrzejazdyTramwajowe
     EXECUTE FUNCTION sprawdzIstnienieLiniiIKursu();
 
-CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe2 BEFORE INSERT ON PrzejazdyAutobusowe
-    EXECUTE FUNCTION sprawdzIstnienieLiniiIKursu();
-=======
->>>>>>> c4df03266ff7b515fd7a03ff16574296d6499770
-
-CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
-    EXECUTE FUNCTION sprawdzDostepnoscKierowcy();
-
---sprawdzają czy istnieje taka para (linia, kurs)
-CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe2 BEFORE INSERT ON PrzejazdyTramwajowe
+CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe_i BEFORE INSERT ON PrzejazdyAutobusowe
     EXECUTE FUNCTION sprawdzIstnienieLiniiIKursu();
 
-CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe2 BEFORE INSERT ON PrzejazdyAutobusowe
-    EXECUTE FUNCTION sprawdzIstnienieLiniiIKursu();
