@@ -321,8 +321,8 @@ CREATE TABLE RozkladAutobusy(
 
 DROP TABLE IF EXISTS PrzejazdyTramwajowe CASCADE;
 CREATE TABLE PrzejazdyTramwajowe(
-    linia INT,
-    kurs INT,
+    linia INT, --references rozkladTramwaje(idLinii)
+    kurs INT, --wiezy integralności sprawdzane za pomocą wyzwalacza
     data DATE,
     pojazd VARCHAR(10) REFERENCES Tramwaje ON DELETE SET NULL,
     kierowca VARCHAR(10) REFERENCES KierowcyTramwajow ON DELETE SET NULL,
@@ -331,7 +331,7 @@ CREATE TABLE PrzejazdyTramwajowe(
 
 DROP TABLE IF EXISTS PrzejazdyAutobusowe CASCADE;
 CREATE TABLE PrzejazdyAutobusowe(
-    linia INT,
+    linia INT,--references rozkladAutobusy(idLinii)
     kurs INT, --wiezy integralności sprawdzane za pomocą wyzwalacza
     data DATE,
     pojazd VARCHAR(10) REFERENCES Autobusy ON DELETE SET NULL,

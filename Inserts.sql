@@ -301,6 +301,19 @@ VALUES
     ('Rondo Grunwaldzkie 02', 3, 29, '11:01'),
     ('Rondo Grunwaldzkie 02', 4, 29, '11:21');
 
+INSERT INTO przejazdytramwajowe(linia, kurs, data, pojazd, kierowca) VALUES
+    (1, 19, '13.02.2024', 'KJ502', 'TRA1231570'),
+    (2, 19, '13.02.2024', 'EK403', 'TRA9910200'),
+    (1, 21, '13.02.2024', 'ER503', 'TRA9904890'),
+    (2, 21, '13.02.2024', 'EK523', 'TRA0008999');
+
+INSERT INTO przejazdyautobusowe(linia, kurs, data, pojazd, kierowca) VALUES
+    (1, 32, '13.02.2024', 'DR541', 'BUS0044456'),
+    (2, 32, '13.02.2024', 'HY537', 'BUS1255678'),
+    (1, 34, '13.02.2024', 'RY217', 'BUS1123678'),
+    (2, 34, '13.02.2024', 'RY223', 'BUS4389900');
+
+
 --w tabeli PrzejazdyAutobusowe wiezy integranolsci sprawdzane sa za pomoca wyzwalacza, tak samo jak w tabeli PrzejazdyTramwajowe
 
 
