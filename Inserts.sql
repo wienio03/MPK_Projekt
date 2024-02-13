@@ -234,7 +234,11 @@ VALUES
     (11, 'Czerwone Maki P+R', 'Mały Płaszów P+R', 'zwykla'),
     (17, 'Czerwone Maki P+R', 'Dworzec Towarowy', 'zwykla'),
     (18, 'Czerwone Maki P+R', 'Górka Narodowa P+R', 'zwykla'),
-    (52, 'Czerwone Maki P+R', 'Osiedle Piastów', 'zwykla');
+    (52, 'Czerwone Maki P+R', 'Osiedle Piastów', 'zwykla'),
+    (11, 'Mały Płaszów P+R', 'Czerwone Maki P+R', 'zwykla'),
+    (17, 'Dworzec Towarowy', 'Czerwone Maki P+R', 'zwykla'),
+    (18, 'Górka Narodowa P+R', 'Czerwone Maki P+R', 'zwykla'),
+    (52, 'Osiedle Piastów', 'Czerwone Maki P+R', 'zwykla');
 
 INSERT INTO LinieAutobusowe(numer, poczatek, koniec, typ)
 VALUES
@@ -261,28 +265,28 @@ VALUES
     ('Lipińskiego 04', False, 'czynny');
 
 
-INSERT INTO RozkladTramwaje(przystanek, idLinii, godzina)
+INSERT INTO RozkladTramwaje(przystanek, idkursu, idLinii, godzina)
 VALUES
-    ('Czerwone Maki P+R 01', 1, '10:10'),
-    ('Czerwone Maki P+R 01', 1, '10:25'),
-    ('Czerwone Maki P+R 01', 3, '11:11'),
-    ('Czerwone Maki P+R 01', 3, '11:19'),
-    ('Czerwone Maki P+R 01', 2, '12:16'),
-    ('Czerwone Maki P+R 01', 2, '12:31'),
-    ('Czerwone Maki P+R 01', 4, '13:07'),
-    ('Czerwone Maki P+R 01', 4, '13:14'),
-    ('Rondo Grunwaldzkie 01', 4, '13:04'),
-    ('Rondo Grunwaldzkie 01', 4, '13:12'),
-    ('Rondo Grunwaldzkie 01', 3, '15:07'),
-    ('Rondo Grunwaldzkie 01', 3, '15:14');
+    ('Czerwone Maki P+R 01',1, 1, '10:10'),
+    ('Czerwone Maki P+R 01',2, 1, '10:25'),
+    ('Czerwone Maki P+R 01', 1, 3, '11:11'),
+    ('Czerwone Maki P+R 01',2, 3, '11:19'),
+    ('Czerwone Maki P+R 01',1, 2, '12:16'),
+    ('Czerwone Maki P+R 01',2, 2, '12:31'),
+    ('Czerwone Maki P+R 01',1, 4, '13:07'),
+    ('Czerwone Maki P+R 01', 2, 4, '13:14'),
+    ('Rondo Grunwaldzkie 01', 1, 4, '13:04'),
+    ('Rondo Grunwaldzkie 01', 2, 4, '13:12'),
+    ('Rondo Grunwaldzkie 01', 1, 3, '11:18'),
+    ('Rondo Grunwaldzkie 01', 2, 3, '11:26');
 
-INSERT INTO RozkladAutobusy(przystanek, idLinii, godzina)
+INSERT INTO RozkladAutobusy(przystanek, idkursu, idLinii, godzina)
 VALUES
-    ('Lipińskiego 04', 6, '11:04'),
-    ('Lipińskiego 04', 6, '11:24'),
-    ('Lipińskiego 04', 8, '00:18'),
-    ('Lipińskiego 04', 8, '01:18'),
-    ('Lipińskiego 03', 8, '00:38'),
+    ('Lipińskiego 04',1, 6, '11:04'),
+    ('Lipińskiego 04', 2, 6, '11:24'),
+    ('Lipińskiego 04', 1, 8, '00:18'),
+    ('Lipińskiego 04', 1, 8, '01:18'),
+    ('Lipińskiego 03', 2, 8, '00:38'),
     ('Lipińskiego 03', 8, '01:38'),
     ('Makowskiego 01', 5, '09:10'),
     ('Makowskiego 01', 5, '09:25'),
