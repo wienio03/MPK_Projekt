@@ -3,7 +3,6 @@
 ---------------------------------------------------------------------------------------------------------------
 CREATE LANGUAGE plpython3u;
 
-
 --zwraca zapis tesktowy przewidywanego czasu podróży
 CREATE OR REPLACE FUNCTION czasPodrozy(adresZajezdni text, adresObecny text)
  RETURNS text
@@ -33,7 +32,7 @@ BEGIN
     IF rokParam NOT IN (SELECT LZ.Rok FROM LaczneZarobki LZ) THEN
         RAISE WARNING 'Ten rok nie jest określony w bazie danych.';
         RETURN 0.00;
-END IF;
+    END IF;
 
 SELECT INTO zarobekRoczny (SumaZBiletow + SumaZKartMiejskich)
 FROM LaczneZarobki LZ
@@ -45,14 +44,26 @@ $$;
 
 --zwraca lokalizację pojazdu, powinna zwracać dane z systemu geolokalizacji pojazdu,
 -- ale w ramach placeholdera zwraca przystanek na którym powinien być pojazd w tym momencie
-CREATE OR REPLACE FUNCTION LokalizacjaPojazdu(numerPojazdu VARCHAR(10))
+CREATE OR REPLACE FUNCTION LokalizacjaPojazdu(pojazdSzukany VARCHAR(10))
 RETURNS TEXT
 LANGUAGE plpgsql
 AS
 $$
 BEGIN
-    --RETURN (SELECT R.
-END;
+    IF pojazdSzukany IN (SELECT numerpojazdu FROM tramwaje) THEN
+        RETURN (SELECT R.przystanek FROM rozkladtramwaje R JOIN przejazdytramwajowe P ON P.linia = R.idlinii AND P.kurs = R.idKursu
+        WHERE CURRENT_DATE = P.data AND pojazdSzukany = P.pojazd
+        ORDER BY current_time - R.godzina ASC
+        LIMIT 1);
+    ELSEIF pojazdSzukany IN (SELECT numerPojazdu FROM autobusy) THEN
+        RETURN (SELECT R.przystanek FROM RozkladAutobusy R JOIN PrzejazdyAutobusowe P ON P.linia = R.idlinii AND P.kurs = R.idKursu
+        WHERE CURRENT_DATE = P.data AND pojazdSzukany = P.pojazd
+        ORDER BY current_time - R.godzina ASC
+        LIMIT 1);
+    ELSE
+        RETURN NULL;
+    END IF;
+END
 $$;
 
 --wyświtla potencjalnie pojazdy zastępcze w wypadku awarii pojazdu na trasie
@@ -292,46 +303,6 @@ BEGIN
         RETURN QUERY (SELECT 'Nie ma takiej linii', 0);
     END IF;
 END
-$$;
-[00:45]
-CREATE OR REPLACE FUNCTION PojazdyZastepcze(numerZepsutegoPojazdu VARCHAR(10))
-RETURNS TABLE (numerPojazdu VARCHAR(10), zajezdnia VARCHAR(50), czasPodrozy TEXT)
-LANGUAGE plpgsql
-AS
-$$
-DECLARE
-    współrzędneMiejscaAwarii VARCHAR(50);
-BEGIN
-    współrzędneMiejscaAwarii = LokalizacjaPojazdu(numerZepsutegoPojazdu);
-    RETURN QUERY SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, współrzędneMiejscaAwarii)
-    FROM Autobusy A
-        JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa
-    WHERE A.stan = 'czynny';
-END;
-$$;
-[00:46]
---zwraca lokalizację pojazdu, powinna zwracać dane z systemu geolokalizacji pojazdu,
--- ale w ramach placeholdera zwraca przystanek na którym powinien być pojazd w tym momencie
-CREATE OR REPLACE FUNCTION LokalizacjaPojazdu(pojazdSzukany VARCHAR(10))
-RETURNS TEXT
-LANGUAGE plpgsql
-AS
-$$
-BEGIN
-    IF pojazdSzukany IN (SELECT numerpojazdu FROM tramwaje) THEN
-        RETURN (SELECT R.przystanek FROM rozkladtramwaje R JOIN przejazdytramwajowe P ON P.linia = R.idlinii AND P.kurs = R.idKursu
-        WHERE CURRENT_DATE = P.data AND pojazdSzukany = P.pojazd
-        ORDER BY current_time - R.godzina ASC
-        LIMIT 1);
-    ELSEIF pojazdSzukany IN (SELECT numerPojazdu FROM autobusy) THEN
-        RETURN (SELECT R.przystanek FROM RozkladAutobusy R JOIN PrzejazdyAutobusowe P ON P.linia = R.idlinii AND P.kurs = R.idKursu
-        WHERE CURRENT_DATE = P.data AND pojazdSzukany = P.pojazd
-        ORDER BY current_time - R.godzina ASC
-        LIMIT 1);
-    ELSE
-        RETURN 'Nie ma takiego pojazdu';
-    END IF;
-END;
 $$;
 
 ---------------------------------------------------------------------------------------------------------------

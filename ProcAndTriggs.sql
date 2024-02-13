@@ -41,29 +41,6 @@ CREATE OR REPLACE FUNCTION kupBilet()
     END;
 $$ LANGUAGE plpgsql;
 
---wstawia id kursu, które są różne dla danej lini na danym przystanku
-CREATE OR REPLACE FUNCTION wstawIdKursu()
-    RETURNS TRIGGER AS $$
-        DECLARE rodzaj text = tg_table_name;
-    BEGIN
-        CASE rodzaj WHEN 'RozkladTramwaje' THEN
-            DECLARE max INT = (SELECT Max(RozkladTramwaje.idkursu) FROM RozkladTramwaje
-                WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
-            BEGIN
-                UPDATE NEW SET idKursu = max + 1
-                WHERE TRUE;
-            END;
-        ELSE
-            DECLARE max INT = (SELECT Max(RozkladAutobusy.idkursu) FROM RozkladAutobusy
-                WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
-            BEGIN
-                UPDATE NEW SET idKursu = max + 1
-                WHERE  True;
-            END;
-        END CASE;
-        RETURN NEW;
-    END
-$$ LANGUAGE plpgsql;
 
 --sprawdza czy zajezdnia jest czynna i czy są w niej dostępne miejsca
 CREATE OR REPLACE FUNCTION sprawdzStanZajezdni()
@@ -181,13 +158,6 @@ $$;
 ---------------------------------------------------------------------------------------------------------------
 --wyzwalacze--
 ---------------------------------------------------------------------------------------------------------------
-
---wstawiają id kursu
-CREATE OR REPLACE TRIGGER tr_before_rozkladTramwaje BEFORE INSERT ON RozkladTramwaje
-    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
-
-CREATE OR REPLACE TRIGGER tr_before_rozkladAutobusy BEFORE INSERT ON RozkladAutobusy
-    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
 
 --sprawdzają czy zajezdnia jest czynna i czy są w niej miejsca
 CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje

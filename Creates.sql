@@ -75,12 +75,6 @@ CREATE SEQUENCE sekwencjaLinie AS INT
     START 1
     CACHE 1;
 
-DROP SEQUENCE IF EXISTS sekwencjaPrzejazdy CASCADE;
-CREATE SEQUENCE sekwencjaPrzejazdy AS INT
-    INCREMENT 1
-    START 1
-    CACHE 1;
-
 ---------------------------------------------------------------------------------------------------------------
 --tabele--
 ---------------------------------------------------------------------------------------------------------------
