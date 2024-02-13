@@ -285,7 +285,7 @@ CREATE TABLE PetleAutobusowe(
 DROP TABLE IF EXISTS LinieTramwajowe CASCADE;
 CREATE TABLE LinieTramwajowe(
  idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
- numer INT UNIQUE,
+ numer INT,
  poczatek VARCHAR(50) REFERENCES PetleTramwajowe,
  koniec VARCHAR(50) REFERENCES PetleTramwajowe,
  typ typLinii NOT NULL
@@ -294,11 +294,13 @@ CREATE TABLE LinieTramwajowe(
 DROP TABLE IF EXISTS LinieAutobusowe CASCADE;
 CREATE TABLE LinieAutobusowe(
  idLinii INT PRIMARY KEY DEFAULT nextval('sekwencjaLinie'),
- numer INT UNIQUE,
+ numer INT,
  poczatek VARCHAR(50) REFERENCES PetleAutobusowe,
  koniec VARCHAR(50) REFERENCES PetleAutobusowe,
  typ typLinii NOT NULL
 );
+
+
 DROP TABLE IF EXISTS RozkladTramwaje CASCADE;
 CREATE TABLE RozkladTramwaje(
     przystanek VARCHAR(50) REFERENCES PrzystankiTramwajowe,

@@ -271,35 +271,35 @@ VALUES
 
 INSERT INTO RozkladTramwaje(przystanek, idkursu, idLinii, godzina)
 VALUES
-    ('Czerwone Maki P+R 01',1, 1, '10:10'),
-    ('Czerwone Maki P+R 01',2, 1, '10:25'),
-    ('Czerwone Maki P+R 01', 1, 3, '11:11'),
-    ('Czerwone Maki P+R 01',2, 3, '11:19'),
-    ('Czerwone Maki P+R 01',1, 2, '12:16'),
-    ('Czerwone Maki P+R 01',2, 2, '12:31'),
-    ('Czerwone Maki P+R 01',1, 4, '13:07'),
-    ('Czerwone Maki P+R 01', 2, 4, '13:14'),
-    ('Rondo Grunwaldzkie 01', 1, 4, '13:04'),
-    ('Rondo Grunwaldzkie 01', 2, 4, '13:12'),
-    ('Rondo Grunwaldzkie 01', 1, 3, '11:18'),
-    ('Rondo Grunwaldzkie 01', 2, 3, '11:26');
+    ('Czerwone Maki P+R 01',1, 19, '10:10'),
+    ('Czerwone Maki P+R 01',2, 19, '10:25'),
+    ('Czerwone Maki P+R 01', 1, 21, '11:11'),
+    ('Czerwone Maki P+R 01',2, 21, '11:19'),
+    ('Czerwone Maki P+R 01',1, 20, '12:16'),
+    ('Czerwone Maki P+R 01',2, 20, '12:31'),
+    ('Czerwone Maki P+R 01',1, 22, '13:07'),
+    ('Czerwone Maki P+R 01', 2, 22, '13:14'),
+    ('Rondo Grunwaldzkie 01', 1, 22, '13:04'),
+    ('Rondo Grunwaldzkie 01', 2, 22, '13:12'),
+    ('Rondo Grunwaldzkie 01', 1, 21, '11:18'),
+    ('Rondo Grunwaldzkie 01', 2, 21, '11:26');
 
 INSERT INTO RozkladAutobusy(przystanek, idkursu, idLinii, godzina)
 VALUES
-    ('Lipińskiego 04',1, 6, '11:04'),
-    ('Lipińskiego 04', 2, 6, '11:24'),
-    ('Lipińskiego 04', 1, 8, '00:18'),
-    ('Lipińskiego 04', 1, 8, '01:18'),
-    ('Lipińskiego 03', 2, 8, '00:38'),
-    ('Lipińskiego 03', 8, '01:38'),
-    ('Makowskiego 01', 5, '09:10'),
-    ('Makowskiego 01', 5, '09:25'),
-    ('Makowskiego 04', 5, '08:05'),
-    ('Makowskiego 04', 5, '08:20'),
-    ('Rondo Grunwaldzkie 01', 7, '11:06'),
-    ('Rondo Grunwaldzkie 01', 7, '11:26'),
-    ('Rondo Grunwaldzkie 02', 7, '11:01'),
-    ('Rondo Grunwaldzkie 02', 7, '11:21');
+    ('Lipińskiego 04',1, 32, '11:04'),
+    ('Lipińskiego 04', 2, 32, '11:24'),
+    ('Lipińskiego 04', 1, 34, '00:18'),
+    ('Lipińskiego 04', 2, 34, '01:18'),
+    ('Lipińskiego 03', 1, 30, '00:38'),
+    ('Lipińskiego 03', 2, 30, '01:38'),
+    ('Makowskiego 01', 1, 27, '09:10'),
+    ('Makowskiego 01', 2, 27, '09:25'),
+    ('Makowskiego 04', 1, 31, '08:05'),
+    ('Makowskiego 04', 2, 31, '08:20'),
+    ('Rondo Grunwaldzkie 01',3,  3, '11:06'),
+    ('Rondo Grunwaldzkie 01', 4, 3, '11:26'),
+    ('Rondo Grunwaldzkie 02', 3, 29, '11:01'),
+    ('Rondo Grunwaldzkie 02', 4, 29, '11:21');
 
 --w tabeli PrzejazdyAutobusowe wiezy integranolsci sprawdzane sa za pomoca wyzwalacza, tak samo jak w tabeli PrzejazdyTramwajowe
 
