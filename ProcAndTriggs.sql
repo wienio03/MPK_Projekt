@@ -1,3 +1,70 @@
+---------------------------------------------------------------------------------------------------------------
+--procedury--
+---------------------------------------------------------------------------------------------------------------
+
+--procedury odpowiadajace za doladowanie salda karty lub pobrania adekwatnej kwoty przy kupnie biletu
+CREATE OR REPLACE FUNCTION doladujKarte()
+    RETURNS TRIGGER AS $$
+        DECLARE obecneSaldo INT;
+    BEGIN
+        obecneSaldo = (
+                       SELECT KM.saldo FROM KartyMiejskie KM
+                        WHERE KM.idKarty = NEW.idKarty);
+        IF NEW.rodzaj = 'doladowanie' THEN
+            UPDATE KartyMiejskie
+            SET saldo = obecneSaldo + NEW.kwota
+            WHERE KartyMiejskie.idKarty = NEW.idKarty;
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION kupBilet()
+    RETURNS TRIGGER AS $$
+        DECLARE obecneSaldo INT;
+    BEGIN
+        IF NEW.platnosc = 'karta miejska' THEN
+            obecneSaldo = (SELECT KM.saldo FROM KartyMiejskie KM
+                           WHERE KM.idKlienta = NEW.idKlienta);
+
+            IF obecneSaldo < NEW.cena THEN
+                RAISE EXCEPTION 'Zbyt mało na koncie! Wybierz inną metode płatności';
+            END IF;
+
+            UPDATE KartyMiejskie
+            SET saldo = obecneSaldo - NEW.cena
+            WHERE KartyMiejskie.idKlienta = NEW.idKlienta;
+
+        ELSE
+            RAISE WARNING 'Płatność dokonana poprzez kasownik';
+        END IF;
+    END;
+$$ LANGUAGE plpgsql;
+
+--wstawia id kursu, które są różne dla danej lini na danym przystanku
+CREATE OR REPLACE FUNCTION wstawIdKursu()
+    RETURNS TRIGGER AS $$
+        DECLARE rodzaj text = tg_table_name;
+    BEGIN
+        CASE rodzaj WHEN 'RozkladTramwaje' THEN
+            DECLARE max INT = (SELECT Max(RozkladTramwaje.idkursu) FROM RozkladTramwaje
+                WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
+            BEGIN
+                UPDATE NEW SET idKursu = max + 1
+                WHERE TRUE;
+            END;
+        ELSE
+            DECLARE max INT = (SELECT Max(RozkladAutobusy.idkursu) FROM RozkladAutobusy
+                WHERE przystanek = NEW.przystanek AND idlinii = NEW.idlinii);
+            BEGIN
+                UPDATE NEW SET idKursu = max + 1
+                WHERE  True;
+            END;
+        END CASE;
+        RETURN NEW;
+    END
+$$ LANGUAGE plpgsql;
+
 --sprawdza czy zajezdnia jest czynna i czy są w niej dostępne miejsca
 CREATE OR REPLACE FUNCTION sprawdzStanZajezdni()
 RETURNS TRIGGER
@@ -108,6 +175,33 @@ BEGIN
         RAISE WARNING 'Nie istnieje pojazd %, dla którego dodano bilet %', NEW.numerPojazdu, NEW.idBiletu;
         RETURN NULL;
     END IF;
-
 END;
 $$;
+
+---------------------------------------------------------------------------------------------------------------
+--wyzwalacze--
+---------------------------------------------------------------------------------------------------------------
+
+--wstawiają id kursu
+CREATE OR REPLACE TRIGGER tr_before_rozkladTramwaje BEFORE INSERT ON RozkladTramwaje
+    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
+
+CREATE OR REPLACE TRIGGER tr_before_rozkladAutobusy BEFORE INSERT ON RozkladAutobusy
+    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
+
+--sprawdzają czy zajezdnia jest czynna i czy są w niej miejsca
+CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
+    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
+    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_after_Bilety AFTER INSERT ON Bilety
+    EXECUTE FUNCTION dokonajTransakcji();
+
