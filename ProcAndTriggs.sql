@@ -383,3 +383,10 @@ CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe_i BEFORE INSERT O
 CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe_i BEFORE INSERT ON PrzejazdyAutobusowe
     EXECUTE FUNCTION sprawdzIstnienieLiniiIKursu();
 
+--kupowanie biletu i doladowanie karty
+CREATE OR REPLACE TRIGGER tr_after_insert_Bilety AFTER INSERT ON Bilety
+   EXECUTE FUNCTION kupBilet();
+
+CREATE OR REPLACE TRIGGER tr_after_insert_Transakcje AFTER INSERT ON TransakcjeKartyMiejskie
+    EXECUTE FUNCTION doladujKarte();
+
