@@ -81,7 +81,7 @@ INSERT INTO Zwolnienia (idZwolnienia, idPracownika, dataRozpoczecia, dataZakoncz
   (20, 6, '2022-09-11', '2022-10-23', 'urlop bezpłatny', 'zakończone');
 
 
-
+--wiezy integralnosci w tabeli Bilety sprawdzane sa za pomoca wyzwalacza
 INSERT INTO Bilety (idBiletu, typ, ulgowy, zasieg, okres, idPojazdu, platnosc, datawydania, czaswydania, cena, idKlienta) VALUES
   (1, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'KJ502', 'przelew blik', '2023-06-23', '17:33:44', 169.00, 1),
   (2, 'firmowy', 'nie', 'I+II', 'miesięczny', 'HK543', 'przelew blik', '2023-04-30', '04:06:44', 144.00, 2),
@@ -292,4 +292,7 @@ VALUES
     ('Rondo Grunwaldzkie 01', 7, '11:26'),
     ('Rondo Grunwaldzkie 02', 7, '11:01'),
     ('Rondo Grunwaldzkie 02', 7, '11:21');
+
+--w tabeli PrzejazdyAutobusowe wiezy integranolsci sprawdzane sa za pomoca wyzwalacza, tak samo jak w tabeli PrzejazdyTramwajowe
+
 

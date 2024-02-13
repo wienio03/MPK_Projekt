@@ -97,49 +97,218 @@ END;
 $$;
 
 
---sprawdza czy kierowca nie jest na urlopie, czy nie jest przypisany do innego przejazdu w tym samym czasie,
---czy pojazd jest czynny oraz czy pojazd nie jest przypisany do kursu w tym samym czasie
 
+--dwie nastepne procedury sprawdzaja czy kierowca lub pojazd sa dostepni
+CREATE OR REPLACE FUNCTION sprawdzDostepnoscPojazdu()
+RETURNS TRIGGER
+AS $$
+DECLARE
+    czynnosc BOOL;
+    dostepnosc BOOL;
+BEGIN
+    czynnosc =  CASE tg_table_name
+                    WHEN 'PrzejazdyAutobusowe'
+                        THEN New.numerPojazdu IN (SELECT autobusy.numerpojazdu FROM autobusy WHERE stan ='czynny')
+                    ELSE
+                        New.numerPojazdu IN (SELECT tramwaje.numerpojazdu FROM tramwaje WHERE stan ='czynny')
+                END;
+    dostepnosc = CASE tg_table_name
+                    WHEN 'PrzejazdyAutobusowe' THEN
+                        CASE
+                            WHEN NOT EXISTS (SELECT kurs FROM przejazdyautobusowe P WHERE data = NEW.data AND pojazd = NEW.pojazd AND
+                                    45 <= (SELECT MIN(godzina) FROM rozkladautobusy R WHERE R.idkursu = P.kurs AND R.idlinii = P.linia )
+                                             - (SELECT MAX(godzina) FROM rozkladautobusy R WHERE R.idkursu = NEW.kurs AND R.idlinii = NEW.linia))
+                                THEN TRUE
+                            WHEN NOT EXISTS (SELECT kurs FROM przejazdyautobusowe P WHERE data = NEW.data AND pojazd = NEW.pojazd AND
+                                (SELECT koniec FROM linieautobusowe WHERE idlinii = P.linia) <> (SELECT poczatek FROM linieautobusowe WHERE idlinii = NEW.idLinii) AND
+                                    (SELECT MIN(godzina) FROM rozkladautobusy R WHERE R.idkursu = P.kurs AND R.idlinii = P.linia )
+                                             - (SELECT MAX(godzina) FROM rozkladautobusy R WHERE R.idkursu = NEW.kurs AND R.idlinii = NEW.linia) BETWEEN 10 AND 45)
+                                THEN TRUE
+                            WHEN NOT EXISTS (SELECT kurs FROM przejazdyautobusowe P WHERE data = NEW.data AND pojazd = NEW.pojazd AND
+                                    10 <= (SELECT MIN(godzina) FROM rozkladautobusy R WHERE R.idkursu = P.kurs AND R.idlinii = P.linia )
+                                             - (SELECT MAX(godzina) FROM rozkladautobusy R WHERE R.idkursu = NEW.kurs AND R.idlinii = NEW.linia))
+                                THEN TRUE
+                            ELSE
+                                FALSE
+                        END
+                    ELSE
+                        CASE
+                            WHEN NOT EXISTS (SELECT kurs FROM przejazdytramwajowe P WHERE data = NEW.data AND pojazd = NEW.pojazd AND
+                                    45 <= (SELECT MIN(godzina) FROM rozkladtramwaje R WHERE R.idkursu = P.kurs AND R.idlinii = P.linia )
+                                             - (SELECT MAX(godzina) FROM rozkladtramwaje R WHERE R.idkursu = NEW.kurs AND R.idlinii = NEW.linia))
+                                THEN TRUE
+                            WHEN NOT EXISTS (SELECT kurs FROM przejazdytramwajowe P WHERE data = NEW.data AND pojazd = NEW.pojazd AND
+                                (SELECT koniec FROM linietramwajowe WHERE idlinii = P.linia) <> (SELECT poczatek FROM linietramwajowe WHERE idlinii = NEW.idLinii) AND
+                                    (SELECT MIN(godzina) FROM rozkladtramwaje R WHERE R.idkursu = P.kurs AND R.idlinii = P.linia )
+                                             - (SELECT MAX(godzina) FROM rozkladtramwaje R WHERE R.idkursu = NEW.kurs AND R.idlinii = NEW.linia) BETWEEN 10 AND 45)
+                                THEN TRUE
+                            WHEN NOT EXISTS (SELECT kurs FROM przejazdytramwajowe P WHERE data = NEW.data AND pojazd = NEW.pojazd AND
+                                    10 <= (SELECT MIN(godzina) FROM rozkladtramwaje R WHERE R.idkursu = P.kurs AND R.idlinii = P.linia )
+                                             - (SELECT MAX(godzina) FROM rozkladtramwaje R WHERE R.idkursu = NEW.kurs AND R.idlinii = NEW.linia))
+                                THEN TRUE
+                            ELSE
+                                FALSE
+                        END
+                    END;
+    CASE
+        WHEN czynnosc = FALSE
+            THEN
+                RAISE WARNING 'Pojazd % nie jest czynny', NEW.pojazd;
+                RETURN NULL;
+        WHEN dostepnosc = FALSE
+            THEN
+                RAISE WARNING 'Pojazd % ma przypisany inny kurs, z którego nie zdąży wrócić', NEW.pojazd;
+                RETURN NULL;
+        ELSE
+            RETURN NEW;
+    END CASE;
+END
+$$ LANGUAGE plpgsql;
 
-WITH ostatniPrzystanekAutobusy AS (
-  SELECT idLinii, przystanek FROM przystankinaliniiautobusowej
-    WHERE liczbaporządkowa = (SELECT MAX(liczbaporządkowa) FROM przystankinaliniiautobusowej L WHERE L.idlinii = idlinii)
-), ostatniPrzystanekTramwaje AS (
-    SELECT idLinii, przystanek FROM przystankinaliniitramwajowej
-    WHERE liczbaporządkowa = (SELECT MAX(liczbaporządkowa) FROM przystankinaliniitramwajowej L WHERE L.idlinii = idlinii)
-)
-
-CREATE OR REPLACE FUNCTION sprawdzDostepnoscKierowcyIPojazdu()
+CREATE OR REPLACE FUNCTION sprawdzDostepnoscKierowcy()
 RETURNS TRIGGER AS $$
 DECLARE
-    urlop bool = CASE tg_table_name
-        WHEN 'PrzejazdyAutobusowe' THEN EXISTS (SELECT Z.idzwolnienia FROM zwolnienia Z JOIN kierowcyautobusow K ON K.idpracownika = Z.idpracownika
-            WHERE NEW.kierowca = K.idlicencji AND CURRENT_DATE BETWEEN Z.datarozpoczecia AND Z.datazakonczenia)
-        ELSE EXISTS (SELECT Z.idzwolnienia FROM zwolnienia Z JOIN KierowcyTramwajow K ON K.idpracownika = Z.idpracownika
-            WHERE NEW.kierowca = K.idlicencji AND CURRENT_DATE BETWEEN Z.datarozpoczecia AND Z.datazakonczenia)
-        END;
-    stan stanpojazdu = CASE tg_table_name
-        WHEN 'PrzejazdyAutobusowe' THEN (SELECT stan FROM autobusy WHERE numerpojazdu = NEW.pojazd)
-        ELSE (SELECT stan FROM tramwaje WHERE numerpojazdu = NEW.pojazd)
-        END;
-    dostepnoscKierowcy bool = CASE tg_table_name
-        WHEN 'PrzejazdyAutobusowe' THEN EXISTS (SELECT P.idprzejazdu FROM przejazdyautobusowe P JOIN
-            (SELECT idLinii, przystanek FROM przystankinaliniiautobusowej
-                WHERE liczbaporządkowa = (SELECT MAX(liczbaporządkowa) FROM przystankinaliniiautobusowej L WHERE L.idlinii = idlinii)) O
-            ON P.idlinii = O.idLinii
-
+    urlop BOOLEAN;
+    innyKurs BOOLEAN;
+    ktoraLinia INT;
+    ktoryKurs INT;
+    godzinaPoczatek TIME;
+    godzinaKoniec TIME;
+    przystanekPoczatek VARCHAR(256);
+    przystanekKoniec VARCHAR(256);
 BEGIN
-    IF urlop = TRUE THEN
-        RAISE WARNING 'Kierowca przypisany do kursu % % % jest na urlopie.', NEW.linia, NEW.data, NEW.godzina;
-        RETURN NULL;
-    ELSEIF stan <> 'czynny' THEN
-        RAISE WARNING 'Autobus przypisany do kursu % % % nie jest gotowy do użytku.', NEW.linia, NEW.data, NEW.godzina;
-        RETURN NULL;
-    ELSEIF EXISTS (SELECT idPrzejazdu FROM przejazdyautobusowe
-end if;
+    CASE tg_table_name
+        WHEN 'PrzejazdyAutobusowe' THEN
+            IF EXISTS (SELECT Z.idzwolnienia FROM zwolnienia Z JOIN kierowcyautobusow K ON K.idpracownika = Z.idpracownika
+            WHERE NEW.kierowca = K.idlicencji AND NEW.data BETWEEN Z.datarozpoczecia AND Z.datazakonczenia) THEN
+                urlop = TRUE;
 
-END;
-$$;
+            ELSE
+
+            IF NOT EXISTS (SELECT PA.kierowca FROM PrzejazdyAutobusowe PA
+                        WHERE PA.data = NEW.data AND PA.kierowca = NEW.kierowca) THEN
+                innyKurs = false;
+            ELSE
+                ktoraLinia = (
+                            SELECT PA.linia FROM PrzejazdyAutobusowe PA
+                            WHERE PA.kierowca = NEW.kierowca
+                            );
+                ktoryKurs = (
+                            SELECT PA.kurs FROM PrzejazdyAutobusowe PA
+                            WHERE PA.kurs = NEW.kurs
+                            );
+                godzinaPoczatek = (
+                            SELECT RA.godzina FROM RozkladAutobusy RA
+                            WHERE RA.idKursu = ktoryKurs AND idLinii = ktoraLinia
+                            HAVING RA.godzina = MIN(RA.godzina)
+                            );
+                godzinaKoniec = (
+                    SELECT RA.godzina FROM RozkladAutobusy RA
+                    WHERE RA.idKursu = ktoryKurs AND idLinii = ktoraLinia
+                    HAVING RA.godzina = MAX(RA.godzina)
+                );
+                przystanekPoczatek = (
+                                         SELECT RA.przystanek FROM RozkladAutobusy RA
+                                         WHERE RA.idKursu = ktoryKurs AND idLinii = ktoraLinia
+                                         HAVING RA.godzina = MAX(RA.godzina)
+                );
+                przystanekKoniec = (
+                SELECT RA.godzina FROM RozkladAutobusy RA
+                WHERE RA.idKursu = ktoryKurs AND idLinii = ktoraLinia
+                HAVING RA.godzina = MAX(RA.godzina)
+                );
+
+                IF godzinaKoniec - godzinaPoczatek < INTERVAL '45 minutes' AND przystanekKoniec <> ( SELECT RA.przystanek FROM RozkladAutobusy RA
+                                                                                                    WHERE RA.idKursu = NEW.idKursu AND RA.idLinii = NEW.idLinii
+                                                                                                    HAVING RA.godzina = MAX(RA.godzina)
+                                                                                                    )
+                THEN
+                    innyKurs = TRUE;
+
+                ELSEIF NOT (SELECT RA.godzina FROM RozkladAutobusy RA
+                                    WHERE RA.idKursu = NEW.idKursu AND RA.idLinii = NEW.idLinii
+                                    HAVING RA.godzina = MAX(RA.godzina)) - godzinaKoniec < INTERVAL '10 minutes' AND przystanekKoniec = (
+                                                                                                                                        SELECT RA.przystanek FROM RozkladAutobusy RA
+                                                                                                                                        WHERE RA.idKursu = NEW.idKursu AND RA.idLinii = NEW.idLinii
+                                                                                                                                        HAVING RA.godzina = MAX(RA.godzina)
+                                                                                                                                        ) THEN
+                innyKurs = TRUE;
+
+                END IF;
+            END IF;
+        END IF;
+        WHEN 'PrzejazdyTramwajowe' THEN
+            IF EXISTS (SELECT Z.idzwolnienia FROM zwolnienia Z JOIN KierowcyTramwajow K ON K.idpracownika = Z.idpracownika
+            WHERE NEW.kierowca = K.idlicencji AND NEW.data BETWEEN Z.datarozpoczecia AND Z.datazakonczenia) THEN
+                urlop = TRUE;
+            ELSE
+                IF NOT EXISTS (SELECT PT.kierowca FROM PrzejazdyTramwajowe PT
+                               WHERE PT.data = NEW.data AND PT.kierowca = NEW.kierowca) THEN
+                    innyKurs = false;
+                ELSE
+                    ktoraLinia = (
+                        SELECT PT.linia FROM PrzejazdyTramwajowe PT
+                        WHERE PT.kierowca = NEW.kierowca
+                    );
+                    ktoryKurs = (
+                        SELECT PT.kurs FROM PrzejazdyTramwajowe PT
+                        WHERE PT.kurs = NEW.kurs
+                    );
+                    godzinaPoczatek = (
+                        SELECT RT.godzina FROM RozkladTramwaje RT
+                        WHERE RT.idKursu = ktoryKurs AND idLinii = ktoraLinia
+                        HAVING RT.godzina = MIN(RT.godzina)
+                    );
+                    godzinaKoniec = (
+                        SELECT RT.godzina FROM RozkladTramwaje RT
+                        WHERE RT.idKursu = ktoryKurs AND idLinii = ktoraLinia
+                        HAVING RT.godzina = MAX(RT.godzina)
+                    );
+                    przystanekPoczatek = (
+                        SELECT RT.przystanek FROM RozkladTramwaje RT
+                        WHERE RT.idKursu = ktoryKurs AND idLinii = ktoraLinia
+                        HAVING RT.godzina = MAX(RT.godzina)
+                    );
+                    przystanekKoniec = (
+                        SELECT RT.godzina FROM RozkladTramwaje RT
+                        WHERE RT.idKursu = ktoryKurs AND idLinii = ktoraLinia
+                        HAVING RT.godzina = MAX(RT.godzina)
+                    );
+
+                    IF godzinaKoniec - godzinaPoczatek < INTERVAL '45 minutes' AND przystanekKoniec <> ( SELECT RT.przystanek FROM RozkladTramwaje RT
+                                                                                                         WHERE RT.idKursu = NEW.idKursu AND RT.idLinii = NEW.idLinii
+                                                                                                         HAVING RT.godzina = MAX(RT.godzina)
+                    )
+                    THEN
+                        innyKurs = TRUE;
+
+                    ELSEIF NOT (SELECT RT.godzina FROM RozkladTramwaje RT
+                                WHERE RT.idKursu = NEW.idKursu AND RT.idLinii = NEW.idLinii
+                                HAVING RT.godzina = MAX(RT.godzina)) - godzinaKoniec < INTERVAL '10 minutes' AND przystanekKoniec = (
+                        SELECT RT.przystanek FROM RozkladTramwaje RT
+                        WHERE RT.idKursu = NEW.idKursu AND RT.idLinii = NEW.idLinii
+                        HAVING RT.godzina = MAX(RT.godzina)
+                    ) THEN
+                        innyKurs = TRUE;
+
+                    END IF;
+                END IF;
+            END IF;
+    END CASE;
+    IF urlop = TRUE THEN
+        RAISE WARNING 'Kierowca % przypisany do kursu % % % jest na urlopie.', NEW.kierowca,NEW.linia, NEW.data, NEW.godzina;
+        RETURN NULL;
+    END IF;
+
+    IF innyKurs = TRUE THEN
+        RAISE WARNING 'Kierowca % ma przypisany inny kurs, z którego nie zdąży wrócić', NEW.kierowca;
+        RETURN NULL;
+    end if;
+
+    RETURN NEW;
+END
+$$ LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION sprawdzPoprawnoscPojazdu()
 RETURNS TRIGGER AS
@@ -169,9 +338,12 @@ CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
 CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
 
-CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
+CREATE OR REPLACE TRIGGER tr_before_Przejazdy BEFORE INSERT ON PrzejazdyAutobusowe
     EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
 
 CREATE OR REPLACE TRIGGER tr_after_Bilety AFTER INSERT ON Bilety
-    EXECUTE FUNCTION dokonajTransakcji();
+    EXECUTE FUNCTION kupBilet();
+
+CREATE OR REPLACE TRIGGER tr_after_Transakcje AFTER INSERT ON TransakcjeKartyMiejskie
+    EXECUTE FUNCTION doladujKarte();
 
