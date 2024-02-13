@@ -1,3 +1,8 @@
+
+---------------------------------------------------------------------------------------------------------------
+--procedury--
+---------------------------------------------------------------------------------------------------------------
+
 --procedury odpowiadajace za doladowanie salda karty lub pobrania adekwatnej kwoty przy kupnie biletu
 CREATE OR REPLACE FUNCTION doladujKarte()
     RETURNS TRIGGER AS $$
@@ -108,3 +113,30 @@ END
 $$
 
  */
+ 
+---------------------------------------------------------------------------------------------------------------
+--wyzwalacze--
+---------------------------------------------------------------------------------------------------------------
+
+--wstawiają id kursu
+CREATE OR REPLACE TRIGGER tr_before_rozkladTramwaje BEFORE INSERT ON RozkladTramwaje
+    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
+
+CREATE OR REPLACE TRIGGER tr_before_rozkladAutobusy BEFORE INSERT ON RozkladAutobusy
+    FOR EACH ROW EXECUTE FUNCTION wstawidkursu();
+
+--sprawdzają czy zajezdnia jest czynna i czy są w niej miejsca
+CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_przejazdyTramwajowe BEFORE INSERT ON PrzejazdyTramwajowe
+    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_before_przejazdyAutobusowe BEFORE INSERT ON PrzejazdyAutobusowe
+    EXECUTE FUNCTION sprawdzDostepnoscKierowcyIPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_after_Bilety AFTER INSERT ON Bilety
+    EXECUTE FUNCTION dokonajTransakcji();
