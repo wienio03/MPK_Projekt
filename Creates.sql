@@ -323,7 +323,7 @@ CREATE TABLE PrzejazdyTramwajowe(
     kurs INT,
     data DATE,
     pojazd VARCHAR(10) REFERENCES Tramwaje ON DELETE SET NULL,
-    kierowca VARCHAR REFERENCES KierowcyTramwajow ON DELETE SET NULL,
+    kierowca VARCHAR(10) REFERENCES KierowcyTramwajow ON DELETE SET NULL,
     PRIMARY KEY (linia,kurs, data)
 );
 
@@ -333,6 +333,6 @@ CREATE TABLE PrzejazdyAutobusowe(
     kurs INT,
     data DATE,
     pojazd VARCHAR(10) REFERENCES Autobusy ON DELETE SET NULL,
-    kierowca VARCHAR REFERENCES KierowcyAutobusow ON DELETE SET NULL,
+    kierowca VARCHAR(10) REFERENCES KierowcyAutobusow ON DELETE SET NULL,
     PRIMARY KEY (linia,kurs, data)
 );
