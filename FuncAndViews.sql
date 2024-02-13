@@ -76,9 +76,11 @@ DECLARE
     współrzędneMiejscaAwarii VARCHAR(50);
 BEGIN
     współrzędneMiejscaAwarii = LokalizacjaPojazdu(numerZepsutegoPojazdu);
-    SELECT A.numerPojazdu, A.zajezdnia, czasPodrozy(Z.adres, współrzędneMiejscaAwarii)
+    WITH odlegloscOdZajezdni AS ( SELECT nazwa, czasPodrozy(adres, współrzędneMiejscaAwarii) AS czasPodrozy FROM zajezdnieautobusowe)
+
+    SELECT A.numerPojazdu, O.nazwa AS zajezdnia, O.czasPodrozy
     FROM Autobusy A
-             JOIN ZajezdnieAutobusowe Z ON A.zajezdnia = Z.nazwa
+             JOIN odlegloscOdZajezdni O ON A.zajezdnia = O.nazwa
     WHERE A.stan = 'czynny';
 END;
 $$;
