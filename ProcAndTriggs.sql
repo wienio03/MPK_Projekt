@@ -353,40 +353,65 @@ $$;
 ---------------------------------------------------------------------------------------------------------------
 
 --sprawdzają czy zajezdnia jest czynna i czy są w niej miejsca
-CREATE OR REPLACE TRIGGER tr_before_tramwaje BEFORE INSERT ON Tramwaje
+CREATE OR REPLACE TRIGGER tr_before_insert_tramwaje BEFORE INSERT ON Tramwaje
     FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
 
-CREATE OR REPLACE TRIGGER tr_before_autobusy BEFORE INSERT ON Autobusy
+CREATE OR REPLACE TRIGGER tr_before_insert_autobusy BEFORE INSERT ON Autobusy
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_update_tramwaje BEFORE UPDATE ON Tramwaje
+    FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
+
+CREATE OR REPLACE TRIGGER tr_before_update_autobusy BEFORE UPDATE ON Autobusy
     FOR EACH ROW EXECUTE FUNCTION sprawdzStanZajezdni();
 
 
 --sprawdzają czy pojazd jest czynny, oraz czy nie ma innego kursu który kończy się mniej niż 10 minut wcześniej na tej samej pętli, lub mniej niż 45 minut wcześniej na innej
-CREATE OR REPLACE TRIGGER tr_before__insert_przejazdyTramwajowe_p BEFORE INSERT ON PrzejazdyTramwajowe
-    EXECUTE FUNCTION sprawdzDostepnoscPojazdu();
+CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe_p BEFORE INSERT ON PrzejazdyTramwajowe
+    FOR EACH ROW EXECUTE FUNCTION sprawdzDostepnoscPojazdu();
 
 CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe_p BEFORE INSERT ON PrzejazdyAutobusowe
-    EXECUTE FUNCTION sprawdzDostepnoscPojazdu();
+    FOR EACH ROW EXECUTE FUNCTION sprawdzDostepnoscPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_before_update_przejazdyTramwajowe_p BEFORE UPDATE ON PrzejazdyTramwajowe
+    FOR EACH ROW EXECUTE FUNCTION sprawdzDostepnoscPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_before_update_przejazdyAutobusowe_p BEFORE UPDATE ON PrzejazdyAutobusowe
+    FOR EACH ROW EXECUTE FUNCTION sprawdzDostepnoscPojazdu();
 
 
 --sprawdzają czy kierowca nie jest na urlopie, oraz czy nie ma innego kursu, który kończy się mniej niż 10 minut wcześniej na tej samej pętli, lub mniej niż 45 minut wcześniej na innej
 CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe_k BEFORE INSERT ON PrzejazdyTramwajowe
-    EXECUTE FUNCTION sprawdzDostepnoscKierowcy();
+    FOR EACH ROW EXECUTE FUNCTION sprawdzDostepnoscKierowcy();
 
 CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe_k BEFORE INSERT ON PrzejazdyAutobusowe
-    EXECUTE FUNCTION sprawdzDostepnoscKierowcy();
+    FOR EACH ROW EXECUTE FUNCTION sprawdzDostepnoscKierowcy();
+
+CREATE OR REPLACE TRIGGER tr_before_update_przejazdyTramwajowe_k BEFORE UPDATE ON PrzejazdyTramwajowe
+    FOR EACH ROW EXECUTE FUNCTION sprawdzDostepnoscKierowcy();
+
+CREATE OR REPLACE TRIGGER tr_before_update_przejazdyAutobusowe_k BEFORE UPDATE ON PrzejazdyAutobusowe
+    FOR EACH ROW EXECUTE FUNCTION sprawdzDostepnoscKierowcy();
 
 
 --sprawdzają czy istnieje taka para (linia, kurs)
 CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyTramwajowe_i BEFORE INSERT ON PrzejazdyTramwajowe
-    EXECUTE FUNCTION sprawdzIstnienieLiniiIKursu();
+    FOR EACH ROW EXECUTE FUNCTION sprawdzIstnienieLiniiIKursu();
 
 CREATE OR REPLACE TRIGGER tr_before_insert_przejazdyAutobusowe_i BEFORE INSERT ON PrzejazdyAutobusowe
-    EXECUTE FUNCTION sprawdzIstnienieLiniiIKursu();
+    FOR EACH ROW EXECUTE FUNCTION sprawdzIstnienieLiniiIKursu();
 
 --kupowanie biletu i doladowanie karty
 CREATE OR REPLACE TRIGGER tr_after_insert_Bilety AFTER INSERT ON Bilety
-   EXECUTE FUNCTION kupBilet();
+   FOR EACH ROW EXECUTE FUNCTION kupBilet();
 
 CREATE OR REPLACE TRIGGER tr_after_insert_Transakcje AFTER INSERT ON TransakcjeKartyMiejskie
-    EXECUTE FUNCTION doladujKarte();
+    FOR EACH ROW EXECUTE FUNCTION doladujKarte();
+
+--sprawdzanie czy istnieje pojazd o danym id
+CREATE OR REPLACE TRIGGER tr_before_insert_Bilety_pojazd BEFORE INSERT ON bilety
+    FOR EACH ROW EXECUTE FUNCTION sprawdzPoprawnoscPojazdu();
+
+CREATE OR REPLACE TRIGGER tr_before_insert_TransakcjeKartyMiejskie_pojazd BEFORE INSERT ON transakcjekartymiejskie
+    FOR EACH ROW EXECUTE FUNCTION sprawdzPoprawnoscPojazdu();
 

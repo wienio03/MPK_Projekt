@@ -183,7 +183,7 @@ CREATE TABLE TransakcjeKartyMiejskie (
  ulgowy czyUlgowy DEFAULT NULL,
  zasieg zasiegBiletu DEFAULT NULL,
  okres okresBiletu DEFAULT NULL,
- numerPojazdu VARCHAR(10) DEFAULT NULL,
+ numerPojazdu VARCHAR(10) DEFAULT NULL, --więzy integralności sprawdzane za pomocą wyzwalacza
  rodzaj typTransakcji NOT NULL,
  kwota MONEY NOT NULL,
  dataTransakcji DATE NOT NULL,
@@ -338,3 +338,18 @@ CREATE TABLE PrzejazdyAutobusowe(
     kierowca VARCHAR(10) REFERENCES KierowcyAutobusow ON DELETE SET NULL,
     PRIMARY KEY (linia,kurs, data)
 );
+
+DROP INDEX IF EXISTS index_zwolnienia_pracownik;
+CREATE INDEX index_zwolnienia_pracownik ON Zwolnienia USING hash (idpracownika);
+
+DROP INDEX IF EXISTS index_rozkladTramwaje_przystanek;
+CREATE INDEX index_rozkladTramwaje_przystanek ON RozkladTramwaje USING hash (przystanek);
+
+DROP INDEX IF EXISTS index_rozkladAutobusy_przystanek;
+CREATE INDEX index_rozkladAutobusy_przystanek ON RozkladAutobusy USING hash (przystanek);
+
+DROP INDEX IF EXISTS index_Tramwaje_model;
+CREATE INDEX index_Tramwaje_model ON Tramwaje USING hash(model);
+
+DROP INDEX IF EXISTS index_Autobusy_model;
+CREATE INDEX index_Autobusy_model ON Autobusy USING hash(model);
