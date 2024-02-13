@@ -245,7 +245,11 @@ VALUES
     (194, 'Pod Fortem', 'Krowodrza Górka P+R', 'zwykla'),
     (578, 'Czerwone Maki P+R', 'Mistrzejowice', 'zwykla'),
     (494, 'Pod Fortem', 'Azory', 'zwykla'),
-    (662, 'Czerwone Maki P+R', 'Plac Centralny im. R.Reagana', 'nocna');
+    (662, 'Czerwone Maki P+R', 'Plac Centralny im. R.Reagana', 'nocna'),
+    (194, 'Krowodrza Górka P+R', 'Pod Fortem', 'zwykla'),
+    (578, 'Mistrzejowice', 'Czerwone Maki P+R', 'zwykla'),
+    (494, 'Azory', 'Pod Fortem', 'zwykla'),
+    (662, 'Plac Centralny im. R.Reagana', 'Czerwone Maki P+R', 'nocna');
 
 INSERT INTO PrzystankiTramwajowe(nazwa, podwojny, stan)
 VALUES
