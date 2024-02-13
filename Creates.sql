@@ -167,7 +167,7 @@ CREATE TABLE Bilety (
  ulgowy czyUlgowy NOT NULL,
  zasieg zasiegBiletu NOT NULL,
  okres okresBiletu NOT NULL,
- idPojazdu VARCHAR(10) NOT NULL,
+ idPojazdu VARCHAR(10) NOT NULL, --więzy integralności sprawdzane za pomocą wyzwalacza
  platnosc metodaPlatnosci NOT NULL,
  dataWydania DATE NOT NULL,
  czasWydania TIME NOT NULL,
@@ -330,7 +330,7 @@ CREATE TABLE PrzejazdyTramwajowe(
 DROP TABLE IF EXISTS PrzejazdyAutobusowe CASCADE;
 CREATE TABLE PrzejazdyAutobusowe(
     linia INT,
-    kurs INT,
+    kurs INT, --wiezy integralności sprawdzane za pomocą wyzwalacza
     data DATE,
     pojazd VARCHAR(10) REFERENCES Autobusy ON DELETE SET NULL,
     kierowca VARCHAR(10) REFERENCES KierowcyAutobusow ON DELETE SET NULL,
