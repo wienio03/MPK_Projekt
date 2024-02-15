@@ -1,3 +1,3 @@
-Projekt na kurs Bazy Danych 2024/2025.
+Projekt na kurs Bazy Danych 2023/2024.
 Autorzy:
 Oskar Kuliński, Wieńczysław Włodyga
