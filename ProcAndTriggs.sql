@@ -313,7 +313,8 @@ $$ LANGUAGE plpgsql;
 
 --sprawdza czy istnieje taki pojazd
 CREATE OR REPLACE FUNCTION sprawdzPoprawnoscPojazdu()
-RETURNS TRIGGER AS
+RETURNS TRIGGER
+LANGUAGE plpgsql AS
 $$
 BEGIN
     IF EXISTS(SELECT numerpojazdu FROM Autobusy WHERE numerpojazdu = NEW.numerPojazdu AND stan = 'czynny')
