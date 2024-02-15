@@ -82,6 +82,23 @@ INSERT INTO Zwolnienia (idZwolnienia, idPracownika, dataRozpoczecia, dataZakoncz
 
 
 --wiezy integralnosci w tabeli Bilety sprawdzane sa za pomoca wyzwalacza
+INSERT INTO Klienci (idKlienta, imie, nazwisko, dataUrodzenia, email, numerTelefonu, adresZamieszkania, dataRejestracji, stanKlienta, znizka) VALUES
+(1, 'Piotr', 'Wiśniewski', '1997-03-28', 'piotr.wiśniewski@example.com', '702375572', 'ul. Słoneczna 98, Kraków', '2023-08-16', 'aktywny', 'obowiazuje'),
+(2, 'Tomasz', 'Kamiński', '1990-03-29', 'tomasz.kamiński@inbox.com', '699141193', 'ul. Leśna 12, Kraków', '2023-09-14', 'zablokowany', 'obowiazuje'),
+(3, 'Marek', 'Wójcik', '1955-08-17', 'marek.wójcik@mail.com', '285271704', 'ul. Klonowa 46, Kraków', '2023-12-29', 'aktywny', 'obowiazuje'),
+(4, 'Agnieszka', 'Kowalski', '2000-01-31', 'agnieszka.kowalski@inbox.com', '641448310', 'ul. Słoneczna 72, Kraków', '2023-02-17', 'aktywny', 'obowiazuje'),
+(5, 'Agnieszka', 'Zieliński', '1999-11-06', 'agnieszka.zieliński@inbox.com', '350526558', 'ul. Długa 37, Kraków', '2023-01-02', 'aktywny', 'nieobowiazuje'),
+(6, 'Tomasz', 'Wójcik', '1998-05-30', 'tomasz.wójcik@mail.com', '766260575', 'ul. Krótka 10, Kraków', '2023-05-17', 'nieaktywny', 'obowiazuje'),
+(7, 'Agnieszka', 'Kamiński', '1995-02-08', 'agnieszka.kamiński@mail.com', '236710344', 'ul. Długa 27, Kraków', '2023-09-24', 'zablokowany', 'obowiazuje'),
+(8, 'Piotr', 'Lewandowski', '1950-11-10', 'piotr.lewandowski@example.com', '330114129', 'ul. Leśna 92, Kraków', '2023-04-10', 'nieaktywny', 'obowiazuje'),
+(9, 'Agnieszka', 'Nowak', '2003-12-29', 'agnieszka.nowak@example.com', '997510367', 'ul. Krótka 73, Kraków', '2023-02-22', 'zablokowany', 'nieobowiazuje'),
+(10, 'Monika', 'Dąbrowski', '2002-05-16', 'monika.dąbrowski@mail.com', '258540683', 'ul. Krótka 88, Kraków', '2023-10-27', 'aktywny', 'obowiazuje'),
+(11, 'Jan', 'Nowak', '2002-06-24', 'jan.nowak@example.com', '902379093', 'ul. Słoneczna 18, Kraków', '2023-06-24', 'zablokowany', 'nieobowiazuje'),
+(12, 'Monika', 'Wiśniewski', '2002-09-17', 'monika.wiśniewski@mail.com', '661229926', 'ul. Długa 17, Kraków', '2023-10-19', 'aktywny', 'obowiazuje'),
+(13, 'Agnieszka', 'Wójcik', '1955-11-03', 'agnieszka.wójcik@mail.com', '894493301', 'ul. Krótka 11, Kraków', '2023-07-13', 'nieaktywny', 'nieobowiazuje'),
+(14, 'Monika', 'Kowalski', '2001-10-11', 'monika.kowalski@mail.com', '323359304', 'ul. Słoneczna 92, Kraków', '2023-11-05', 'zablokowany', 'nieobowiazuje'),
+(15, 'Agnieszka', 'Nowak', '2000-01-05', 'agnieszka.nowak@mail.com', '320861912', 'ul. Klonowa 38, Kraków', '2023-10-07', 'nieaktywny', 'obowiazuje');
+
 INSERT INTO Bilety (idBiletu, typ, ulgowy, zasieg, okres, idPojazdu, platnosc, datawydania, czaswydania, cena, idKlienta) VALUES
   (1, 'firmowy', 'nie', 'I+II+III', 'miesięczny', 'KJ502', 'przelew blik', '2023-06-23', '17:33:44', 169.00, 1),
   (2, 'firmowy', 'nie', 'I+II', 'miesięczny', 'HK543', 'przelew blik', '2023-04-30', '04:06:44', 144.00, 2),
@@ -95,26 +112,10 @@ INSERT INTO Bilety (idBiletu, typ, ulgowy, zasieg, okres, idPojazdu, platnosc, d
   (10, 'socjalny', 'nie', 'I', 'miesięczny','DR506' , 'karta', '2023-03-08', '14:34:17', 30.00, 10),
   (11, 'bezrobotny', 'nie', 'I+II+III', 'miesięczny', 'HY537', 'karta miejska', '2023-03-13', '08:11:36', 70.00, 11),
   (12, 'socjalny', 'nie', 'I+II+III', 'miesięczny', 'DR501' ,'karta', '2023-08-07', '01:53:11', 70.00, 12),
-  (13, 'mieszkanca', 'nie', 'I', 'miesięczny 1 linia', 'DR541', 'aplikacja', '2023-05-23', '16:48:42', 80.00, 13),
+  (13, 'mieszkanca', 'nie', 'I', 'miesięczny 1 linia', 'DR541', 'karta miejska', '2023-05-23', '16:48:42', 80.00, 13),
   (14, 'mieszkanca', 'tak', 'I', 'miesięczny', 'HY537' ,'gotowka', '2023-03-20', '02:26:25', 40.00, 14),
   (15, 'socjalny', 'nie', 'I+II', 'miesięczny','HY537' ,'gotowka', '2023-12-27', '05:30:36', 50.00, 15);
 
-INSERT INTO Klienci (idKlienta, imie, nazwisko, dataUrodzenia, email, numerTelefonu, adresZamieszkania, dataRejestracji, stanKlienta, znizka) VALUES
-  (1, 'Piotr', 'Wiśniewski', '1997-03-28', 'piotr.wiśniewski@example.com', '702375572', 'ul. Słoneczna 98, Kraków', '2023-08-16', 'aktywny', 'obowiazuje'),
-  (2, 'Tomasz', 'Kamiński', '1990-03-29', 'tomasz.kamiński@inbox.com', '699141193', 'ul. Leśna 12, Kraków', '2023-09-14', 'zablokowany', 'obowiazuje'),
-  (3, 'Marek', 'Wójcik', '1955-08-17', 'marek.wójcik@mail.com', '285271704', 'ul. Klonowa 46, Kraków', '2023-12-29', 'aktywny', 'obowiazuje'),
-  (4, 'Agnieszka', 'Kowalski', '2000-01-31', 'agnieszka.kowalski@inbox.com', '641448310', 'ul. Słoneczna 72, Kraków', '2023-02-17', 'aktywny', 'obowiazuje'),
-  (5, 'Agnieszka', 'Zieliński', '1999-11-06', 'agnieszka.zieliński@inbox.com', '350526558', 'ul. Długa 37, Kraków', '2023-01-02', 'aktywny', 'nieobowiazuje'),
-  (6, 'Tomasz', 'Wójcik', '1998-05-30', 'tomasz.wójcik@mail.com', '766260575', 'ul. Krótka 10, Kraków', '2023-05-17', 'nieaktywny', 'obowiazuje'),
-  (7, 'Agnieszka', 'Kamiński', '1995-02-08', 'agnieszka.kamiński@mail.com', '236710344', 'ul. Długa 27, Kraków', '2023-09-24', 'zablokowany', 'obowiazuje'),
-  (8, 'Piotr', 'Lewandowski', '1950-11-10', 'piotr.lewandowski@example.com', '330114129', 'ul. Leśna 92, Kraków', '2023-04-10', 'nieaktywny', 'obowiazuje'),
-  (9, 'Agnieszka', 'Nowak', '2003-12-29', 'agnieszka.nowak@example.com', '997510367', 'ul. Krótka 73, Kraków', '2023-02-22', 'zablokowany', 'nieobowiazuje'),
-  (10, 'Monika', 'Dąbrowski', '2002-05-16', 'monika.dąbrowski@mail.com', '258540683', 'ul. Krótka 88, Kraków', '2023-10-27', 'aktywny', 'obowiazuje'),
-  (11, 'Jan', 'Nowak', '2002-06-24', 'jan.nowak@example.com', '902379093', 'ul. Słoneczna 18, Kraków', '2023-06-24', 'zablokowany', 'nieobowiazuje'),
-  (12, 'Monika', 'Wiśniewski', '2002-09-17', 'monika.wiśniewski@mail.com', '661229926', 'ul. Długa 17, Kraków', '2023-10-19', 'aktywny', 'obowiazuje'),
-  (13, 'Agnieszka', 'Wójcik', '1955-11-03', 'agnieszka.wójcik@mail.com', '894493301', 'ul. Krótka 11, Kraków', '2023-07-13', 'nieaktywny', 'nieobowiazuje'),
-  (14, 'Monika', 'Kowalski', '2001-10-11', 'monika.kowalski@mail.com', '323359304', 'ul. Słoneczna 92, Kraków', '2023-11-05', 'zablokowany', 'nieobowiazuje'),
-  (15, 'Agnieszka', 'Nowak', '2000-01-05', 'agnieszka.nowak@mail.com', '320861912', 'ul. Klonowa 38, Kraków', '2023-10-07', 'nieaktywny', 'obowiazuje');
 
 INSERT INTO KartyMiejskie (idKarty, idKlienta, numerKarty, typ, dataWydania, waznaOd, waznaDo, stanKarty, saldo) VALUES
   (1, 1, 474541, 'legitymacja studencka/doktorska', '2023-12-19', '2023-12-19', '2024-12-18', 'wygasla', 200.00),
