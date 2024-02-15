@@ -269,37 +269,37 @@ VALUES
     ('Lipińskiego 04', False, 'czynny');
 
 
-INSERT INTO RozkladTramwaje(przystanek, idkursu, idLinii, godzina)
+INSERT INTO RozkladTramwaje(przystanek, idkursu, idLinii, godzina) --inserty mogą nie działać ze względu na użycie sekwencji w idLinii
 VALUES
-    ('Czerwone Maki P+R 01',1, 19, '10:10'),
-    ('Czerwone Maki P+R 01',2, 19, '10:25'),
-    ('Czerwone Maki P+R 01', 1, 21, '11:11'),
-    ('Czerwone Maki P+R 01',2, 21, '11:19'),
-    ('Czerwone Maki P+R 01',1, 20, '12:16'),
-    ('Czerwone Maki P+R 01',2, 20, '12:31'),
-    ('Czerwone Maki P+R 01',1, 22, '13:07'),
-    ('Czerwone Maki P+R 01', 2, 22, '13:14'),
-    ('Rondo Grunwaldzkie 01', 1, 22, '13:04'),
-    ('Rondo Grunwaldzkie 01', 2, 22, '13:12'),
-    ('Rondo Grunwaldzkie 01', 1, 21, '11:18'),
-    ('Rondo Grunwaldzkie 01', 2, 21, '11:26');
+    ('Czerwone Maki P+R 01',1, 1, '10:10'),
+    ('Czerwone Maki P+R 01',2, 1, '10:25'),
+    ('Czerwone Maki P+R 01', 1, 3, '11:11'),
+    ('Czerwone Maki P+R 01',2, 3, '11:19'),
+    ('Czerwone Maki P+R 01',1, 2, '12:16'),
+    ('Czerwone Maki P+R 01',2, 2, '12:31'),
+    ('Czerwone Maki P+R 01',1, 4, '13:07'),
+    ('Czerwone Maki P+R 01', 2, 4, '13:14'),
+    ('Rondo Grunwaldzkie 01', 1, 4, '13:14'),
+    ('Rondo Grunwaldzkie 01', 2, 4, '13:22'),
+    ('Rondo Grunwaldzkie 01', 1, 3, '11:18'),
+    ('Rondo Grunwaldzkie 01', 2, 3, '11:26');
 
 INSERT INTO RozkladAutobusy(przystanek, idkursu, idLinii, godzina)
 VALUES
-    ('Lipińskiego 04',1, 32, '11:04'),
-    ('Lipińskiego 04', 2, 32, '11:24'),
-    ('Lipińskiego 04', 1, 34, '00:18'),
-    ('Lipińskiego 04', 2, 34, '01:18'),
-    ('Lipińskiego 03', 1, 30, '00:38'),
-    ('Lipińskiego 03', 2, 30, '01:38'),
-    ('Makowskiego 01', 1, 27, '09:10'),
-    ('Makowskiego 01', 2, 27, '09:25'),
-    ('Makowskiego 04', 1, 31, '08:05'),
-    ('Makowskiego 04', 2, 31, '08:20'),
-    ('Rondo Grunwaldzkie 01',3,  3, '11:06'),
-    ('Rondo Grunwaldzkie 01', 4, 3, '11:26'),
-    ('Rondo Grunwaldzkie 02', 3, 29, '11:01'),
-    ('Rondo Grunwaldzkie 02', 4, 29, '11:21');
+    ('Lipińskiego 04',1, 10, '11:04'),
+    ('Lipińskiego 04', 2, 10, '11:24'),
+    ('Lipińskiego 04', 1, 12, '00:18'),
+    ('Lipińskiego 04', 2, 12, '01:18'),
+    ('Lipińskiego 03', 1, 16, '00:38'),
+    ('Lipińskiego 03', 2, 16, '01:38'),
+    ('Makowskiego 01', 1, 9, '09:10'),
+    ('Makowskiego 01', 2, 9, '09:25'),
+    ('Makowskiego 04', 1, 13, '08:05'),
+    ('Makowskiego 04', 2, 13, '08:20'),
+    ('Rondo Grunwaldzkie 01',3,  11, '11:06'),
+    ('Rondo Grunwaldzkie 01', 4, 11, '11:26'),
+    ('Rondo Grunwaldzkie 02', 3, 15, '11:01'),
+    ('Rondo Grunwaldzkie 02', 4, 15, '11:21');
 
 INSERT INTO przejazdytramwajowe(linia, kurs, data, pojazd, kierowca) VALUES
     (1, 19, '13.02.2024', 'KJ502', 'TRA1231570'),

@@ -353,10 +353,10 @@ DROP INDEX IF EXISTS index_rozkladAutobusy_przystanek;
 CREATE INDEX index_rozkladAutobusy_przystanek ON RozkladAutobusy USING hash (przystanek);
 
 DROP INDEX IF EXISTS index_rozkladTramwaje_kursLinia;
-CREATE INDEX index_rozkladTramwaje_kursLinia ON RozkladTramwaje USING hash (idkursu, idLinii);
+CREATE INDEX index_rozkladTramwaje_kursLinia ON RozkladTramwaje USING btree (idkursu, idLinii);
 
 DROP INDEX IF EXISTS index_rozkladAutobusy_kursLinia;
-CREATE INDEX index_rozkladAutobusy_kursLinia ON RozkladAutobusy USING hash (idkursu, idLinii);
+CREATE INDEX index_rozkladAutobusy_kursLinia ON RozkladAutobusy USING btree (idkursu, idLinii);
 
 DROP INDEX IF EXISTS index_Tramwaje_model;
 CREATE INDEX index_Tramwaje_model ON Tramwaje USING hash(model);
