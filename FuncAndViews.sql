@@ -345,7 +345,11 @@ SELECT
     P2.imie AS imiePodwladnego,
     P2.nazwisko AS nazwiskoPodwladnego
 FROM Pracownicy P1
-         JOIN Pracownicy P2 ON P1.idPracownika = P2.idPracownika;
+JOIN Pracownicy P2 ON P1.idPracownika = P2.idPrzelozonego
+ORDER BY P2.idPrzelozonego;
+
+
+
 
 --wyświetla serwisowane obecnie tramwaje i autobusy
 CREATE OR REPLACE VIEW PojazdySerwisowane AS
